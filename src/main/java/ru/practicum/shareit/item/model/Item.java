@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import ru.practicum.shareit.request.ItemRequest;
@@ -9,6 +10,7 @@ import javax.validation.constraints.NotEmpty;
 
 @Data
 @Builder
+@AllArgsConstructor
 public class Item {
     private Integer id;
     @NotEmpty

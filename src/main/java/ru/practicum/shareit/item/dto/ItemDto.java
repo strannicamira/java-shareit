@@ -11,7 +11,7 @@ import javax.validation.constraints.NotEmpty;
 
 @Data
 @Builder
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class ItemDto {
     private Integer id;
     @NotEmpty
