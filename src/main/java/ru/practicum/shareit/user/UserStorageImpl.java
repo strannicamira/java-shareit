@@ -3,9 +3,8 @@ package ru.practicum.shareit.user;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
+import ru.practicum.shareit.exception.DuplicateEmailFoundException;
 import ru.practicum.shareit.exception.NotFoundException;
 
 import java.util.ArrayList;
@@ -33,8 +32,20 @@ public class UserStorageImpl implements UserStorage {
         return Optional.ofNullable(users.get(id)).orElseThrow(() -> new NotFoundException("Пользователь не найден в списке."));
     }
 
+
+    public User findByEmail(String email) {
+        for (User user : users.values()) {
+            if (user.getEmail().equals(email)) ;
+            return user;
+        }
+        return null;
+    }
+
     @Override
     public User create(User user) {
+        if (findByEmail(user.getEmail()) != null) {
+            throw new DuplicateEmailFoundException("Пользователь с такой почтой уже существует");
+        }
         user.setId(++id);
         users.put(id, user);
         return user;
