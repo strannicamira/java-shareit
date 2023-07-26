@@ -38,7 +38,7 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleDuplicateEmailFoundException(final DuplicateEmailFoundException e) {
         return new ErrorResponse(e.getMessage()
         );
