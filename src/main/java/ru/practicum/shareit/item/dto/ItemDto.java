@@ -14,17 +14,17 @@ import javax.validation.constraints.NotEmpty;
 @AllArgsConstructor
 public class ItemDto {
     private Integer id;
-    @NotEmpty
+//    @NotEmpty
     private String name;
     private String description;
     private Boolean available;
     private User owner;
     private ItemRequest request;
 
-    public ItemDto(String name, String description, Boolean available, ItemRequest request) {
-        this.name = name;
-        this.description = description;
-        this.available = available;
-        this.request = request;
-    }
+//    public ItemDto(String name, String description, Boolean available, ItemRequest request) {
+//        this.name = name;
+//        this.description = description;
+//        this.available = available;
+//        this.request = request;
+//    }
 }
