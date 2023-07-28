@@ -30,7 +30,8 @@ public class UserStorageImpl implements UserStorage {
 
     @Override
     public User findById(Integer id) {
-        return Optional.ofNullable(users.get(id)).orElseThrow(() -> new NotFoundException("Пользователь не найден в списке."));
+        return Optional.ofNullable(users.get(id)).orElseThrow(() ->
+                new NotFoundException("Пользователь не найден в списке."));
     }
 
 

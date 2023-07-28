@@ -1,9 +1,9 @@
 package ru.practicum.shareit.exception;
 
-public class ErrorResponse {
-    private final String error;
+import lombok.Value;
 
-    public ErrorResponse(String error) {
-        this.error = error;
-    }
+@Value
+public class ErrorResponse {
+    String error;
+
 }
