@@ -17,13 +17,14 @@ public class Item {
     private String name;
     private String description;
     private Boolean available;
-    private User owner;
-    private ItemRequest request;
+    private Integer owner;
+    private ItemRequest itemRequest;
 
-    public Item(String name, String description, Boolean available, ItemRequest request) {
+    public Item(Integer id, String name, String description, Boolean available, ItemRequest itemRequest) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.available = available;
-        this.request = request;
+        this.itemRequest = itemRequest;
     }
 }

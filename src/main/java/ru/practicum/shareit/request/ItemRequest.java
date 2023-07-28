@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Data;
 import ru.practicum.shareit.user.User;
 
-import javax.validation.constraints.NotEmpty;
 import java.time.LocalDate;
 
 @Data
@@ -12,7 +11,7 @@ import java.time.LocalDate;
 public class ItemRequest {
     private Integer id;
     private String description;
-    private User requestor;
+    private User requester;
     private LocalDate created;
 
 }

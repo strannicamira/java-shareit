@@ -5,10 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.UserService;
-import ru.practicum.shareit.user.UserStorage;
-import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.List;
 
@@ -30,8 +26,8 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Item create(Item user) {
-        return itemStorage.create(user);
+    public ItemDto create(Integer userId, ItemDto itemDto) {
+        return itemStorage.create(userId, itemDto);
     }
 
     @Override

@@ -10,7 +10,7 @@ public interface ItemStorage {
 
     Item findById(Integer id);
 
-    Item create(Item item);
+    ItemDto create(Integer userId, ItemDto itemDto);
 
     ItemDto update(Integer id, ItemDto itemDto);
 

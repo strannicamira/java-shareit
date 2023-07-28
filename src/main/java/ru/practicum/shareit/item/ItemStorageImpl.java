@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
-import ru.practicum.shareit.exception.DuplicateEmailFoundException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,10 +35,12 @@ public class ItemStorageImpl implements ItemStorage {
     }
 
     @Override
-    public Item create(Item item) {
-        item.setId(++id);
+    public ItemDto create(Integer userId, ItemDto itemDto) {
+        itemDto.setId(++id);
+        Item item = ItemMapper.toItem(itemDto);
+        item.setOwner(userId);
         items.put(id, item);
-        return item;
+        return itemDto;
     }
 
     @Override
@@ -48,8 +50,7 @@ public class ItemStorageImpl implements ItemStorage {
         itemDto.setName(itemDto.getName() == null ? item.getName() : itemDto.getName());
         itemDto.setDescription(itemDto.getDescription() == null ? item.getDescription() : itemDto.getDescription());
         itemDto.setAvailable(itemDto.getAvailable() == null ? item.getAvailable() : itemDto.getAvailable());
-        itemDto.setOwner(itemDto.getOwner() == null ? item.getOwner() : itemDto.getOwner());
-        itemDto.setRequest(itemDto.getRequest() == null ? item.getRequest() : itemDto.getRequest());
+        itemDto.setItemRequest(itemDto.getItemRequest() == null ? item.getItemRequest() : itemDto.getItemRequest());
 
         items.put(id, ItemMapper.toItem(itemDto));
         return itemDto;
