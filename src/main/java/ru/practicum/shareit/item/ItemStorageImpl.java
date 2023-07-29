@@ -37,7 +37,7 @@ public class ItemStorageImpl implements ItemStorage {
     public List<ItemDto> findAll(Integer userId) {
         ArrayList<ItemDto> userItems = new ArrayList<>();
         for (Item item : items.values()) {
-            if (item.getOwner() == userId) {
+            if (item.getOwner().equals(userId)) {
                 userItems.add(ItemMapper.toItemDto(item));
             }
         }
