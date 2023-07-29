@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserService;
@@ -45,7 +46,7 @@ public class ItemController {
     public ItemDto update(@PathVariable("id") Integer id, @RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody ItemDto itemDto) {
         userService.findById(userId);
         if (!itemService.findById(id).getOwner().equals(userId)) {
-            throw new NotFoundException("Пользователь не владелец");
+            throw new NotOwnerException("Пользователь не владелец");
         }
         return itemService.update(id, userId, itemDto);
     }
