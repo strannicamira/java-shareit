@@ -10,9 +10,9 @@ public interface ItemStorage {
 
     Item findById(Integer id);
 
-    ItemDto create(Integer userId, ItemDto itemDto);
+    ItemDto create(Integer userId, Item itemDto);
 
-    ItemDto update(Integer id, ItemDto itemDto);
+    ItemDto update(Integer id, Integer userId, ItemDto itemDto);
 
     void deleteById(Integer id);
 }

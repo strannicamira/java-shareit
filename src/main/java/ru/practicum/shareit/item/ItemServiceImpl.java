@@ -3,11 +3,8 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.DuplicateEmailFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.UserService;
-import ru.practicum.shareit.user.UserServiceImpl;
 
 import java.util.List;
 
@@ -29,13 +26,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto create(Integer userId, ItemDto itemDto) {
+    public ItemDto create(Integer userId, Item itemDto) {
         return itemStorage.create(userId, itemDto);
     }
 
     @Override
-    public ItemDto update(Integer id, ItemDto itemDto) {
-        return itemStorage.update(id, itemDto);
+    public ItemDto update(Integer id, Integer userId, ItemDto itemDto) {
+        return itemStorage.update(id, userId, itemDto);
     }
 
     @Override

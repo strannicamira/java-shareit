@@ -32,7 +32,7 @@ public class ItemController {
     }
 
     @PostMapping(produces = { MediaType.APPLICATION_JSON_VALUE })
-    public ItemDto create(@RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody ItemDto itemDto) {
+    public ItemDto create(@RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody Item itemDto) {
 //        if (userService.findById(userId) == null) {
 //            throw new NotFoundException("Пользователь такой не существует");
 //        }
@@ -41,8 +41,12 @@ public class ItemController {
     }
 
     @PatchMapping(value = "/{id}")
-    public ItemDto update(@PathVariable("id") Integer id, @Valid @RequestBody ItemDto itemDto) {
-        return itemService.update(id, itemDto);
+    public ItemDto update(@PathVariable("id") Integer id, @RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody ItemDto itemDto) {
+        userService.findById(userId);
+        if (itemService.findById(id).getOwner() != userId) {
+            throw new NotFoundException("Пользователь не владелец");
+        }
+        return itemService.update(id, userId, itemDto);
     }
 
     @DeleteMapping(value = "/{itemId}")
