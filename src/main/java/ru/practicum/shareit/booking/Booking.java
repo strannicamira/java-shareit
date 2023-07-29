@@ -7,9 +7,6 @@ import ru.practicum.shareit.user.User;
 import javax.validation.constraints.NotEmpty;
 import java.time.LocalDate;
 
-/**
- * TODO Sprint add-bookings.
- */
 public class Booking {
     private Integer id;
     @NotEmpty
