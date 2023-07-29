@@ -21,14 +21,19 @@ public class ItemController {
     private final ItemService itemService;
     private final UserService userService;
 
-    @GetMapping
-    public List<Item> findAll() {
-        return itemService.findAll();
+    @GetMapping(value = "/search")
+    public List<ItemDto> searchItem(@RequestParam("text") String text, @RequestHeader("X-Sharer-User-Id") Integer userId) {
+        return itemService.findAll(text, userId);
     }
 
-    @GetMapping(value = "/{id}")
-    public Item findById(@PathVariable Integer id) {
-        return itemService.findById(id);
+    @GetMapping
+    public List<ItemDto> findAll(@RequestHeader("X-Sharer-User-Id") Integer userId) {
+        return itemService.findAll(userId);
+    }
+
+    @GetMapping(value = "/{itemId}")
+    public ItemDto findById(@PathVariable Integer itemId, @RequestHeader("X-Sharer-User-Id") Integer userId) {
+        return ItemMapper.toItemDto(itemService.findById(itemId));
     }
 
     @PostMapping(produces = { MediaType.APPLICATION_JSON_VALUE })

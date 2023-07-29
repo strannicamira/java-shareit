@@ -15,9 +15,13 @@ public class ItemServiceImpl implements ItemService {
 
     private final ItemStorage itemStorage;
 
+    public List<ItemDto> findAll(String text, Integer userId) {
+        return itemStorage.findAll(text, userId);
+    }
+
     @Override
-    public List<Item> findAll() {
-        return itemStorage.findAll();
+    public List<ItemDto> findAll(Integer userId) {
+        return itemStorage.findAll(userId);
     }
 
     @Override

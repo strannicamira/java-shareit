@@ -6,7 +6,7 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import java.util.List;
 
 public interface ItemStorage {
-    List<Item> findAll();
+    List<ItemDto> findAll(Integer userId);
 
     Item findById(Integer id);
 
@@ -15,4 +15,6 @@ public interface ItemStorage {
     ItemDto update(Integer id, Integer userId, ItemDto itemDto);
 
     void deleteById(Integer id);
+
+    List<ItemDto> findAll(String text, Integer userId);
 }

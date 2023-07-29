@@ -8,10 +8,7 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
@@ -24,8 +21,27 @@ public class ItemStorageImpl implements ItemStorage {
     private Integer id = 0;
 
     @Override
-    public List<Item> findAll() {
-        return new ArrayList<>(items.values());
+    public List<ItemDto> findAll(String text, Integer userId) {
+        ArrayList<ItemDto> userItems = new ArrayList<>();
+        for (Item item : items.values()) {
+            if (item.getAvailable() && !text.isEmpty() &&
+                    (item.getName().toLowerCase().contains(text.toLowerCase(Locale.ROOT)) ||
+                            item.getDescription().toLowerCase().contains(text.toLowerCase()))) {
+                userItems.add(ItemMapper.toItemDto(item));
+            }
+        }
+        return userItems;
+    }
+
+    @Override
+    public List<ItemDto> findAll(Integer userId) {
+        ArrayList<ItemDto> userItems = new ArrayList<>();
+        for (Item item : items.values()) {
+            if (item.getOwner() == userId) {
+                userItems.add(ItemMapper.toItemDto(item));
+            }
+        }
+        return userItems;
     }
 
     @Override
@@ -61,4 +77,5 @@ public class ItemStorageImpl implements ItemStorage {
     public void deleteById(Integer id) {
         items.remove(id);
     }
+
 }
