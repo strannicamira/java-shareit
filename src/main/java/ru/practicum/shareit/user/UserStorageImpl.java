@@ -59,8 +59,8 @@ public class UserStorageImpl implements UserStorage {
         User user = findById(id);
         userDto.setId(id);
         userDto.setName(userDto.getName() == null ? user.getName() : userDto.getName());
-        User user1 = findByEmail(userDto.getEmail());
-        if (user1 != null && !user1.getId().equals(id)) {
+        User existingUser = findByEmail(userDto.getEmail());
+        if (existingUser != null && !existingUser.getId().equals(id)) {
             throw new DuplicateEmailFoundException("Пользователь с такой почтой уже существует");
         }
         userDto.setEmail(userDto.getEmail() == null ? user.getEmail() : userDto.getEmail());
