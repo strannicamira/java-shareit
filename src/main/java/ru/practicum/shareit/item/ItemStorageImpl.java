@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 
@@ -22,24 +22,24 @@ public class ItemStorageImpl implements ItemStorage {
     private Integer id = 0;
 
     @Override
-    public List<ItemDto> findAll(String text, Integer userId) {
-        ArrayList<ItemDto> userItems = new ArrayList<>();
+    public List<Item> findAll(String text, Integer userId) {
+        ArrayList<Item> userItems = new ArrayList<>();
         for (Item item : items.values()) {
             if (item.getAvailable() && !text.isEmpty() &&
                     (item.getName().toLowerCase().contains(text.toLowerCase(Locale.ROOT)) ||
                             item.getDescription().toLowerCase().contains(text.toLowerCase()))) {
-                userItems.add(ItemMapper.toItemDto(item));
+                userItems.add(item);
             }
         }
         return userItems;
     }
 
     @Override
-    public List<ItemDto> findAll(Integer userId) {
-        ArrayList<ItemDto> userItems = new ArrayList<>();
+    public List<Item> findAll(Integer userId) {
+        List<Item> userItems = new ArrayList<>();
         for (Item item : items.values()) {
             if (item.getOwner().getId().equals(userId)) {
-                userItems.add(ItemMapper.toItemDto(item));
+                userItems.add(item);
             }
         }
         return userItems;
@@ -51,27 +51,27 @@ public class ItemStorageImpl implements ItemStorage {
     }
 
     @Override
-    public ItemDto create(User user, Item item) {
+    public Item create(User user, Item item) {
         item.setId(++id);
-        ItemDto itemDto = ItemMapper.toItemDto(item);
         item.setOwner(user);
         items.put(id, item);
-        return itemDto;
+        return item;
     }
 
     @Override
-    public ItemDto update(Integer id, User user, ItemDto itemDto) {
-        Item item = findById(id);
-        itemDto.setId(id);
-        itemDto.setName(itemDto.getName() == null ? item.getName() : itemDto.getName());
-        itemDto.setDescription(itemDto.getDescription() == null ? item.getDescription() : itemDto.getDescription());
-        itemDto.setAvailable(itemDto.getAvailable() == null ? item.getAvailable() : itemDto.getAvailable());
-        itemDto.setItemRequest(itemDto.getItemRequest() == null ? item.getItemRequest() : itemDto.getItemRequest());
-
-        Item itemToPut = ItemMapper.toItem(itemDto);
-        itemToPut.setOwner(user);
-        items.put(id, itemToPut);
-        return itemDto;
+    public Item update(Integer id, User user, Item item) {
+        Item itemToBeUpdated = findById(id);
+        if (itemToBeUpdated != null && !itemToBeUpdated.getOwner().getId().equals(user.getId())) {
+            throw new NotOwnerException("Пользователь не владелец");
+        }
+        item.setId(id);
+        item.setName(item.getName() == null ? itemToBeUpdated.getName() : item.getName());
+        item.setDescription(item.getDescription() == null ? itemToBeUpdated.getDescription() : item.getDescription());
+        item.setAvailable(item.getAvailable() == null ? itemToBeUpdated.getAvailable() : item.getAvailable());
+        item.setItemRequest(item.getItemRequest() == null ? itemToBeUpdated.getItemRequest() : item.getItemRequest());
+        item.setOwner(user);
+        items.put(id, item);
+        return item;
     }
 
     @Override
