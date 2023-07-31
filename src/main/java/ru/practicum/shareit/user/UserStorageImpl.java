@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.DuplicateEmailFoundException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,17 +54,17 @@ public class UserStorageImpl implements UserStorage {
     }
 
     @Override
-    public UserDto update(Integer id, UserDto userDto) {
-        User user = findById(id);
-        userDto.setId(id);
-        userDto.setName(userDto.getName() == null ? user.getName() : userDto.getName());
-        User existingUser = findByEmail(userDto.getEmail());
-        if (existingUser != null && !existingUser.getId().equals(id)) {
+    public User update(Integer id, User user) {
+        User userWithTheSameEmail = findByEmail(user.getEmail());
+        if (userWithTheSameEmail != null && !userWithTheSameEmail.getId().equals(id)) {
             throw new DuplicateEmailFoundException("Пользователь с такой почтой уже существует");
         }
-        userDto.setEmail(userDto.getEmail() == null ? user.getEmail() : userDto.getEmail());
-        users.put(id, UserMapper.toUser(userDto));
-        return userDto;
+        User obsoledUser = findById(id);
+        user.setId(id);
+        user.setName(user.getName() == null ? obsoledUser.getName() : user.getName());
+        user.setEmail(user.getEmail() == null ? obsoledUser.getEmail() : user.getEmail());
+        users.put(id, user);
+        return user;
     }
 
     @Override

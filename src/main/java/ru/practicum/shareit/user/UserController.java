@@ -13,6 +13,7 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final UserMapper userMapper;
 
     @GetMapping
     public List<User> findAll() {
@@ -31,7 +32,7 @@ public class UserController {
 
     @PatchMapping(value = "/{id}")
     public UserDto update(@PathVariable("id") Integer id, @Valid @RequestBody UserDto userDto) {
-        return userService.update(id, userDto);
+        return userMapper.toUserDto(userService.update(id, userMapper.toUser(userDto)));
     }
 
     @DeleteMapping(value = "/{userId}")

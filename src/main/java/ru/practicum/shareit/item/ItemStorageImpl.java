@@ -60,15 +60,15 @@ public class ItemStorageImpl implements ItemStorage {
 
     @Override
     public Item update(Integer id, User user, Item item) {
-        Item itemToBeUpdated = findById(id);
-        if (itemToBeUpdated != null && !itemToBeUpdated.getOwner().getId().equals(user.getId())) {
+        Item obsoledItem = findById(id);
+        if (!obsoledItem.getOwner().getId().equals(user.getId())) {
             throw new NotOwnerException("Пользователь не владелец");
         }
         item.setId(id);
-        item.setName(item.getName() == null ? itemToBeUpdated.getName() : item.getName());
-        item.setDescription(item.getDescription() == null ? itemToBeUpdated.getDescription() : item.getDescription());
-        item.setAvailable(item.getAvailable() == null ? itemToBeUpdated.getAvailable() : item.getAvailable());
-        item.setItemRequest(item.getItemRequest() == null ? itemToBeUpdated.getItemRequest() : item.getItemRequest());
+        item.setName(item.getName() == null ? obsoledItem.getName() : item.getName());
+        item.setDescription(item.getDescription() == null ? obsoledItem.getDescription() : item.getDescription());
+        item.setAvailable(item.getAvailable() == null ? obsoledItem.getAvailable() : item.getAvailable());
+        item.setItemRequest(item.getItemRequest() == null ? obsoledItem.getItemRequest() : item.getItemRequest());
         item.setOwner(user);
         items.put(id, item);
         return item;

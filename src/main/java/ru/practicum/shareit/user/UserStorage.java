@@ -1,7 +1,5 @@
 package ru.practicum.shareit.user;
 
-import ru.practicum.shareit.user.dto.UserDto;
-
 import java.util.List;
 
 public interface UserStorage {
@@ -11,7 +9,7 @@ public interface UserStorage {
 
     User create(User user);
 
-    UserDto update(Integer id, UserDto userDto);
+    User update(Integer id, User user);
 
     void deleteUserById(Integer id);
 }
