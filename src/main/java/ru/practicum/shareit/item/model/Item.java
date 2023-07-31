@@ -1,19 +1,23 @@
 package ru.practicum.shareit.item.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.practicum.shareit.request.ItemRequest;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-@Data
-@Builder
+//@Data
+//@Builder
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity
 public class Item {
+    @Id
     private Integer id;
     @NotEmpty
     private String name;
@@ -22,6 +26,7 @@ public class Item {
     @NotNull
     private Boolean available;
     private Integer owner;
+    @Transient // TODO: tmp
     private ItemRequest itemRequest;
 
     public Item(Integer id, String name, String description, Boolean available, ItemRequest itemRequest) {
