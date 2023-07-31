@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserService;
 
 
@@ -37,17 +38,17 @@ public class ItemController {
 
     @PostMapping(produces = {MediaType.APPLICATION_JSON_VALUE})
     public ItemDto create(@RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody Item itemDto) {
-        userService.findById(userId);
-        return itemService.create(userId, itemDto);
+        User user = userService.findById(userId);
+        return itemService.create(user, itemDto);
     }
 
     @PatchMapping(value = "/{id}")
     public ItemDto update(@PathVariable("id") Integer id, @RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody ItemDto itemDto) {
-        userService.findById(userId);
-        if (!itemService.findById(id).getOwner().equals(userId)) {
+        User user = userService.findById(userId);
+        if (!itemService.findById(id).getOwner().getId().equals(userId)) {
             throw new NotOwnerException("Пользователь не владелец");
         }
-        return itemService.update(id, userId, itemDto);
+        return itemService.update(id, user, itemDto);
     }
 
     @DeleteMapping(value = "/{itemId}")

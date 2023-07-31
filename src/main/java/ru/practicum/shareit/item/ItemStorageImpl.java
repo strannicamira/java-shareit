@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.User;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,7 +38,7 @@ public class ItemStorageImpl implements ItemStorage {
     public List<ItemDto> findAll(Integer userId) {
         ArrayList<ItemDto> userItems = new ArrayList<>();
         for (Item item : items.values()) {
-            if (item.getOwner().equals(userId)) {
+            if (item.getOwner().getId().equals(userId)) {
                 userItems.add(ItemMapper.toItemDto(item));
             }
         }
@@ -50,16 +51,16 @@ public class ItemStorageImpl implements ItemStorage {
     }
 
     @Override
-    public ItemDto create(Integer userId, Item item) {
+    public ItemDto create(User user, Item item) {
         item.setId(++id);
         ItemDto itemDto = ItemMapper.toItemDto(item);
-        item.setOwner(userId);
+        item.setOwner(user);
         items.put(id, item);
         return itemDto;
     }
 
     @Override
-    public ItemDto update(Integer id, Integer userId, ItemDto itemDto) {
+    public ItemDto update(Integer id, User user, ItemDto itemDto) {
         Item item = findById(id);
         itemDto.setId(id);
         itemDto.setName(itemDto.getName() == null ? item.getName() : itemDto.getName());
@@ -68,7 +69,7 @@ public class ItemStorageImpl implements ItemStorage {
         itemDto.setItemRequest(itemDto.getItemRequest() == null ? item.getItemRequest() : itemDto.getItemRequest());
 
         Item itemToPut = ItemMapper.toItem(itemDto);
-        itemToPut.setOwner(userId);
+        itemToPut.setOwner(user);
         items.put(id, itemToPut);
         return itemDto;
     }
