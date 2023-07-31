@@ -18,6 +18,7 @@ import javax.validation.constraints.NotNull;
 @Table(name = "items", schema = "public")//TODO: @Table is optional, but check name that should be the same
 public class Item {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @NotEmpty
     private String name;

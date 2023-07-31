@@ -16,6 +16,7 @@ import java.time.LocalDate;
 @Table(name = "requests", schema = "public")//TODO: @Table is optional, but check name that should be the same
 public class ItemRequest {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String description;
     @Transient //TODO: tmp

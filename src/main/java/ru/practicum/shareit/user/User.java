@@ -2,10 +2,7 @@ package ru.practicum.shareit.user;
 
 import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 
@@ -20,6 +17,7 @@ import javax.validation.constraints.NotEmpty;
 public class User {
     @Id
 //    @Column(name = "id") //TODO: Optional
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id; //TODO: Long, String
     @NotEmpty
 //    @Column(name = "name") //TODO: @Column is optional

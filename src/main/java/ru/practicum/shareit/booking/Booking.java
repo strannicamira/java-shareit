@@ -18,6 +18,7 @@ import java.time.LocalDate;
 @Table(name = "bookings", schema = "public")//TODO: @Table is optional, but check name that should be the same
 public class Booking {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     //    @NotEmpty
     //    private String name;
