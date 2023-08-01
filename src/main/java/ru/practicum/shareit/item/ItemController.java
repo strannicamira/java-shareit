@@ -19,18 +19,19 @@ public class ItemController {
         return itemService.getItem(userId, itemId);
     }
 
+    @GetMapping()
+    public List<ItemDto> get(@RequestHeader("X-Sharer-User-Id") Integer userId) {
+        return itemService.getUserItems(userId);
+    }
+
     @GetMapping(value = "/search")
     public List<ItemDto> get(@RequestHeader("X-Sharer-User-Id") Integer userId, @RequestParam(name = "text", required = false) String text) {
-        if (text == null || text.isEmpty()) {
-            return itemService.getUserItems(userId);
-        } else {
-            return itemService.getUserItems(userId, text);
-        }
+        return itemService.getUserItems(userId, text);
     }
 
     @PostMapping
-    public ItemDto add(@RequestHeader("X-Later-User-Id") Integer userId, @RequestBody ItemDto itemDto) {
-        return itemService.addNewItem(userId, itemDto);
+    public ItemDto add(@RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody Item item) {
+        return itemService.addNewItem(userId, item);
     }
 
     @PatchMapping(value = "/{id}")//TODO:?
@@ -40,7 +41,7 @@ public class ItemController {
     }
 
     @DeleteMapping("/{itemId}")
-    public void deleteItem(@RequestHeader("X-Later-User-Id") Integer userId, @PathVariable(name = "itemId") Integer itemId) {
+    public void deleteItem(@RequestHeader("X-Sharer-User-Id") Integer userId, @PathVariable(name = "itemId") Integer itemId) {
         itemService.deleteItem(userId, itemId);
     }
 }

@@ -16,7 +16,7 @@ public interface ItemService {
     List<ItemDto> getUserItems(Integer userId, String text);
 
     @Transactional
-    ItemDto addNewItem(Integer userId, ItemDto itemDto);
+    ItemDto addNewItem(Integer userId, Item item);
 
     ItemDto updateItem(Integer userId, ItemDto itemDto, Integer itemId);
 

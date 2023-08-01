@@ -4,12 +4,13 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.user.User;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
-//@Component
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ItemMapper {
+    @Valid
     public static Item mapToItem(ItemDto itemDto, User user) {
         Item item = new Item();
         item.setId(itemDto.getId()); //TODO: ? https://github.com/praktikum-java/module4_spring_without_boot/blob/repositories/src/main/java/ru/practicum/item/ItemMapper.java

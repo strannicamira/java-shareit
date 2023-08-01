@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exception.NotFoundException;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class UserServiceImpl implements UserService {
     @Transactional//(propagation = Propagation.REQUIRED)
     public UserDto getUser(Integer userId) {
         log.info("Search user by id {}", userId);
-        User user = repository.findById(userId).orElseThrow(() -> new IllegalStateException("User not found"));
+        User user = repository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         return UserMapper.mapToUserDto(user);
     }
 
@@ -43,12 +44,12 @@ public class UserServiceImpl implements UserService {
     public UserDto updateUser(Integer userId, UserDto userDto) {
         log.info("Update user by id {}", userId);
 
-        User userById = repository.findById(userId).orElseThrow(() -> new IllegalStateException("User not found"));
+        User userById = repository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
 
-        userById.setName(userDto.getName() == null ? userById.getName() : userDto.getName());
-        userById.setEmail(userDto.getEmail() == null ? userById.getEmail() : userDto.getEmail());
+        userById.setName(userDto.getName() == null || userDto.getName().isBlank() ? userById.getName() : userDto.getName());
+        userById.setEmail(userDto.getEmail() == null || userDto.getEmail().isBlank() ? userById.getEmail() : userDto.getEmail());
 
-        User savedUser = repository.save(userById);
+        User savedUser = repository.save(userById); // TODO: save or saveAndFlash
 
         return UserMapper.mapToUserDto(savedUser);
     }

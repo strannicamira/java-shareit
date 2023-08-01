@@ -5,9 +5,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,7 +25,9 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public ItemDto getItem(Integer userId, Integer itemId) {
         log.info("Search item by item id {}", itemId);
-        Item item = repository.findByOwnerIdAndId(userId, itemId).orElseThrow(() -> new IllegalStateException("Item not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        Item item = repository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
         return ItemMapper.mapToItemDto(item);
     }
 
@@ -38,22 +42,27 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     public List<ItemDto> getUserItems(Integer userId, String text) {
         log.info("Search all items by user id {} by matched text '{}'", userId, text);
-        List<Item> item = repository.findByOwnerId(userId);
-        BooleanExpression byUserId = QItem.item.owner.id.eq(userId);
-        BooleanExpression byTextInName = QItem.item.name.contains(text);
-        BooleanExpression byTextInDescr = QItem.item.description.contains(text);
-        Iterable<Item> foundItems = repository.findAll(byUserId.and(byTextInName.or(byTextInDescr)));
+        BooleanExpression byAvailable = QItem.item.available.eq(true);
+        BooleanExpression byTextInName = QItem.item.name.toLowerCase().contains(text.toLowerCase());
+        BooleanExpression byTextInDescr = QItem.item.description.toLowerCase().contains(text.toLowerCase());
+        Iterable<Item> foundItems = new ArrayList<>();
+        if (text != null && !text.isEmpty()) {
+            foundItems = repository.findAll(byAvailable.and(byTextInName.or(byTextInDescr)));
+        }
         return ItemMapper.mapToItemDto(foundItems);
     }
 
 
     @Override
     @Transactional
-    public ItemDto addNewItem(Integer userId, ItemDto itemDto) {
+    public ItemDto addNewItem(Integer userId, Item item) {
         log.info("Create item by user id {}", userId);
+
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        Item item = repository.save(ItemMapper.mapToItem(itemDto, user));
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        item.setOwner(user);
+
+        item = repository.save(item);
         return ItemMapper.mapToItemDto(item);
     }
 
@@ -63,9 +72,20 @@ public class ItemServiceImpl implements ItemService {
         log.info("Update item by id {}", itemId);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        itemDto.setId(itemId);//TODO: set or check?
-        Item item = repository.save(ItemMapper.mapToItem(itemDto, user));
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        Item itemById = repository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
+
+        if (!itemById.getOwner().getId().equals(user.getId())) {
+            throw new IllegalStateException("Пользователь не владелец");
+        }
+
+        itemById.setName(itemDto.getName() == null || itemDto.getName().isBlank() ? itemById.getName() : itemDto.getName());
+        itemById.setDescription(itemDto.getDescription() == null || itemDto.getDescription().isBlank() ? itemById.getDescription() : itemDto.getDescription());
+        itemById.setAvailable(itemDto.getAvailable() == null ? itemById.getAvailable() : itemDto.getAvailable());
+        itemById.setOwner(user);
+        itemById.setItemRequest(itemDto.getItemRequest() == null ? itemById.getItemRequest() : itemDto.getItemRequest());
+        Item item = repository.save(itemById); // TODO: save or saveAndFlash
         return ItemMapper.mapToItemDto(item);
     }
 
