@@ -23,12 +23,12 @@ public class UserStorageImpl implements UserStorage {
     private Integer id = 0;
 
     @Override
-    public List<User> findAll() {
+    public List<User> getAllUsers() {
         return new ArrayList<>(users.values());
     }
 
     @Override
-    public User findById(Integer id) {
+    public User getUser(Integer id) {
         return Optional.ofNullable(users.get(id)).orElseThrow(() ->
                 new NotFoundException("Пользователь не найден в списке."));
     }
@@ -44,7 +44,7 @@ public class UserStorageImpl implements UserStorage {
     }
 
     @Override
-    public User create(User user) {
+    public User saveUser(User user) {
         if (findByEmail(user.getEmail()) != null) {
             throw new DuplicateEmailFoundException("Пользователь с такой почтой уже существует");
         }
@@ -54,12 +54,12 @@ public class UserStorageImpl implements UserStorage {
     }
 
     @Override
-    public User update(Integer id, User user) {
+    public User updateUser(Integer id, User user) {
         User userWithTheSameEmail = findByEmail(user.getEmail());
         if (userWithTheSameEmail != null && !userWithTheSameEmail.getId().equals(id)) {
             throw new DuplicateEmailFoundException("Пользователь с такой почтой уже существует");
         }
-        User obsoledUser = findById(id);
+        User obsoledUser = getUser(id);
         user.setId(id);
         user.setName(user.getName() == null ? obsoledUser.getName() : user.getName());
         user.setEmail(user.getEmail() == null ? obsoledUser.getEmail() : user.getEmail());
@@ -68,7 +68,7 @@ public class UserStorageImpl implements UserStorage {
     }
 
     @Override
-    public void deleteUserById(Integer id) {
+    public void deleteUser(Integer id) {
         users.remove(id);
     }
 }

@@ -10,6 +10,7 @@ import javax.validation.constraints.NotEmpty;
 //@Builder
 @Getter
 @Setter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -24,9 +25,10 @@ public class User {
     // TODO: PostgreSQL common to use first_name instead firstName column name for ex.
     // TODO: for ex. @Column(name = "first_name", nullable = false)
     // TODO: for ex.   @Column(name="STUDENT_NAME", length=128, nullable=false, unique=true)
+    @Column(name = "name", nullable = false)
     private String name;
     @NotEmpty
     @Email
-//    @Column(name = "email")//TODO: Optional
+    @Column(name = "email", nullable = false)//TODO: Optional
     private String email;
 }

@@ -20,6 +20,7 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public ItemDto getItem(Integer userId, Integer itemId) {
         log.info("Search item by item id {}", itemId);
         Item item = repository.findByOwnerIdAndId(userId, itemId).orElseThrow(() -> new IllegalStateException("Item not found"));
@@ -46,8 +47,8 @@ public class ItemServiceImpl implements ItemService {
     }
 
 
-    @Transactional
     @Override
+    @Transactional
     public ItemDto addNewItem(Integer userId, ItemDto itemDto) {
         log.info("Create item by user id {}", userId);
         User user = userRepository.findById(userId)
@@ -57,18 +58,19 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public ItemDto updateItem(Integer userId, ItemDto itemDto, Integer itemId) {
         log.info("Update item by id {}", itemId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        itemDto.setId(itemId);//TODO: ?
+        itemDto.setId(itemId);//TODO: set or check?
         Item item = repository.save(ItemMapper.mapToItem(itemDto, user));
         return ItemMapper.mapToItemDto(item);
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void deleteItem(Integer userId, Integer itemId) {
         log.info("Delete item by user id {} by item id {}", userId, itemId);
         repository.deleteByOwnerIdAndId(userId, itemId);

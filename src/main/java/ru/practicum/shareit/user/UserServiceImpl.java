@@ -3,43 +3,53 @@ package ru.practicum.shareit.user;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Slf4j
 public class UserServiceImpl implements UserService {
 
-    private final UserStorage userStorage;
+    private final UserRepository repository;
 
     @Override
-    public List<User> findAll() {
+    @Transactional(readOnly = true)
+    public List<UserDto> getAllUsers() {
         log.info("Search all users");
-        return userStorage.findAll();
+        return UserMapper.mapToUserDto(repository.findAll());
     }
 
     @Override
-    public User findById(Integer id) {
-        log.info("Search user by id {}", id);
-        return userStorage.findById(id);
+    @Transactional//(propagation = Propagation.REQUIRED)
+    public UserDto getUser(Integer userId) {
+        log.info("Search user by id {}", userId);
+        User user = repository.findById(userId).orElseThrow(() -> new IllegalStateException("User not found"));
+        return UserMapper.mapToUserDto(user);
     }
 
     @Override
-    public User create(User user) {
+    @Transactional
+    public UserDto saveUser(UserDto userDto) {
         log.info("Create user");
-        return userStorage.create(user);
+        User user = repository.save(UserMapper.mapToUser(userDto));
+        return UserMapper.mapToUserDto(user);
     }
 
     @Override
-    public User update(Integer id, User user) {
-        log.info("Update user by id {}", id);
-        return userStorage.update(id, user);
-    }
+    @Transactional
+    public UserDto updateUser(Integer userId, UserDto userDto) {
+        log.info("Update user by id {}", userId);
+        userDto.setId(userId);//TODO: set or check?
+        User user = repository.save(UserMapper.mapToUser(userDto));
+        return UserMapper.mapToUserDto(user);    }
 
     @Override
-    public void deleteUserById(Integer id) {
-        log.info("Delete user by id {}", id);
-        userStorage.deleteUserById(id);
+    @Transactional
+    public void deleteUser(Integer userId) {
+        log.info("Delete user by id {}", userId);
+        repository.deleteById(userId);
     }
 }
