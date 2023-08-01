@@ -19,9 +19,9 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
 
     @Override
-    public ItemDto getItem(Integer itemId) {
+    public ItemDto getItem(Integer userId, Integer itemId) {
         log.info("Search item by item id {}", itemId);
-        Item item = repository.findById(itemId).orElseThrow(() -> new IllegalStateException("Item not found"));
+        Item item = repository.findByOwnerIdAndId(userId, itemId).orElseThrow(() -> new IllegalStateException("Item not found"));
         return ItemMapper.mapToItemDto(item);
     }
 

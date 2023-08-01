@@ -8,11 +8,11 @@ import java.util.List;
 public interface ItemService {
 
     @Transactional(readOnly = true)
-    ItemDto getItem(Integer itemId);
+    ItemDto getItem(Integer userId, Integer itemId);
 
     List<ItemDto> getUserItems(Integer userId);
 
-    @Transactional(readOnly = true)//TODO: ?
+    @Transactional(readOnly = true) //TODO: ?
     List<ItemDto> getUserItems(Integer userId, String text);
 
     @Transactional
