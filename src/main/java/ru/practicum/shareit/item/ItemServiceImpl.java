@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,8 +37,12 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     public List<ItemDto> getUserItems(Integer userId, String text) {
         log.info("Search all items by user id {} by matched text '{}'", userId, text);
-        List<Item> item = repository.findByOwnerId(userId);//TODO: QItem
-        return ItemMapper.mapToItemDto(item);
+        List<Item> item = repository.findByOwnerId(userId);
+        BooleanExpression byUserId = QItem.item.owner.id.eq(userId);
+        BooleanExpression byTextInName = QItem.item.name.contains(text);
+        BooleanExpression byTextInDescr = QItem.item.description.contains(text);
+        Iterable<Item> foundItems = repository.findAll(byUserId.and(byTextInName.or(byTextInDescr)));
+        return ItemMapper.mapToItemDto(foundItems);
     }
 
 
