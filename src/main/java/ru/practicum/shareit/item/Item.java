@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item.model;
+package ru.practicum.shareit.item;
 
 import lombok.*;
 import ru.practicum.shareit.request.ItemRequest;
@@ -12,6 +12,7 @@ import javax.validation.constraints.NotNull;
 //@Builder
 @Getter
 @Setter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -27,18 +28,11 @@ public class Item {
     @NotNull
     @Column(name = "is_available")
     private Boolean available;
-    @Transient // TODO: tmp
-    @Column(name = "owner_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude//TODO: ?
+    @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
-    @Transient // TODO: tmp
-    @Column(name = "request_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "request_id")
     private ItemRequest itemRequest;
-
-    public Item(Integer id, String name, String description, Boolean available, ItemRequest itemRequest) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.available = available;
-        this.itemRequest = itemRequest;
-    }
 }

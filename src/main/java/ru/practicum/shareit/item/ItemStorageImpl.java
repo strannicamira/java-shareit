@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotOwnerException;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 
 import java.util.*;
@@ -22,7 +21,7 @@ public class ItemStorageImpl implements ItemStorage {
     private Integer id = 0;
 
     @Override
-    public List<Item> findAll(String text, Integer userId) {
+    public List<Item> getItems(String text, Integer userId) {
         ArrayList<Item> userItems = new ArrayList<>();
         for (Item item : items.values()) {
             if (item.getAvailable() && !text.isEmpty() &&
@@ -35,7 +34,7 @@ public class ItemStorageImpl implements ItemStorage {
     }
 
     @Override
-    public List<Item> findAll(Integer userId) {
+    public List<Item> getUserItems(Integer userId) {
         List<Item> userItems = new ArrayList<>();
         for (Item item : items.values()) {
             if (item.getOwner().getId().equals(userId)) {
@@ -46,12 +45,12 @@ public class ItemStorageImpl implements ItemStorage {
     }
 
     @Override
-    public Item findById(Integer id) {
-        return Optional.ofNullable(items.get(id)).orElseThrow(() -> new NotFoundException("Предмет не найден в списке."));
+    public Item getItems(Integer itemId) {
+        return Optional.ofNullable(items.get(itemId)).orElseThrow(() -> new NotFoundException("Предмет не найден в списке."));
     }
 
     @Override
-    public Item create(User user, Item item) {
+    public Item addNewItem(User user, Item item) {
         item.setId(++id);
         item.setOwner(user);
         items.put(id, item);
@@ -60,7 +59,7 @@ public class ItemStorageImpl implements ItemStorage {
 
     @Override
     public Item update(Integer id, User user, Item item) {
-        Item obsoledItem = findById(id);
+        Item obsoledItem = getItems(id);
         if (!obsoledItem.getOwner().getId().equals(user.getId())) {
             throw new NotOwnerException("Пользователь не владелец");
         }
@@ -75,8 +74,8 @@ public class ItemStorageImpl implements ItemStorage {
     }
 
     @Override
-    public void deleteById(Integer id) {
-        items.remove(id);
+    public void deleteItem(Integer itemId) {
+        items.remove(itemId);
     }
 
 }

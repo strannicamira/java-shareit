@@ -3,50 +3,69 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.item.model.Item;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserRepository;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService {
 
-    private final ItemStorage itemStorage;
+    private final ItemRepository repository;
+    private final UserRepository userRepository;
 
-    public List<Item> findAll(String text, Integer userId) {
-        log.info("Search all items by matched text '{}'", text);
-        return itemStorage.findAll(text, userId);
+    @Override
+    public ItemDto getItem(Integer itemId) {
+        log.info("Search item by item id {}", itemId);
+        Item item = repository.findById(itemId).orElseThrow(() -> new IllegalStateException("Item not found"));
+        return ItemMapper.mapToItemDto(item);
     }
 
     @Override
-    public List<Item> findAll(Integer userId) {
+    public List<ItemDto> getUserItems(Integer userId) {
         log.info("Search all items by user id {}", userId);
-        return itemStorage.findAll(userId);
+        List<Item> item = repository.findByOwnerId(userId);
+        return ItemMapper.mapToItemDto(item);
     }
 
     @Override
-    public Item findById(Integer id) {
-        log.info("Search all items by id {}", id);
-        return itemStorage.findById(id);
+    @Transactional(readOnly = true)
+    public List<ItemDto> getUserItems(Integer userId, String text) {
+        log.info("Search all items by user id {} by matched text '{}'", userId, text);
+        List<Item> item = repository.findByOwnerId(userId);//TODO: QItem
+        return ItemMapper.mapToItemDto(item);
     }
 
+
+    @Transactional
     @Override
-    public Item create(User userId, Item itemDto) {
+    public ItemDto addNewItem(Integer userId, ItemDto itemDto) {
         log.info("Create item by user id {}", userId);
-        return itemStorage.create(userId, itemDto);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Item item = repository.save(ItemMapper.mapToItem(itemDto, user));
+        return ItemMapper.mapToItemDto(item);
     }
 
     @Override
-    public Item update(Integer id, User userId, Item item) {
-        log.info("Update item by id {}", id);
-        return itemStorage.update(id, userId, item);
+    public ItemDto updateItem(Integer userId, ItemDto itemDto, Integer itemId) {
+        log.info("Update item by id {}", itemId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        itemDto.setId(itemId);//TODO: ?
+        Item item = repository.save(ItemMapper.mapToItem(itemDto, user));
+        return ItemMapper.mapToItemDto(item);
     }
 
+    @Transactional
     @Override
-    public void deleteById(Integer id) {
-        log.info("Delete item by id {}", id);
-        itemStorage.deleteById(id);
+    public void deleteItem(Integer userId, Integer itemId) {
+        log.info("Delete item by user id {} by item id {}", userId, itemId);
+        repository.deleteByOwnerIdAndId(userId, itemId);
     }
 }
