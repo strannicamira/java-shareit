@@ -42,9 +42,16 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto updateUser(Integer userId, UserDto userDto) {
         log.info("Update user by id {}", userId);
-        userDto.setId(userId);//TODO: set or check?
-        User user = repository.save(UserMapper.mapToUser(userDto));
-        return UserMapper.mapToUserDto(user);    }
+
+        User userById = repository.findById(userId).orElseThrow(() -> new IllegalStateException("User not found"));
+
+        userById.setName(userDto.getName() == null ? userById.getName() : userDto.getName());
+        userById.setEmail(userDto.getEmail() == null ? userById.getEmail() : userDto.getEmail());
+
+        User savedUser = repository.save(userById);
+
+        return UserMapper.mapToUserDto(savedUser);
+    }
 
     @Override
     @Transactional
