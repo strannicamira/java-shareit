@@ -1,39 +1,47 @@
 package ru.practicum.shareit.booking;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import ru.practicum.shareit.item.model.Item;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.*;
+import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
+import javax.validation.constraints.FutureOrPresent;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Getter
 @Setter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "bookings", schema = "public")//TODO: @Table is optional, but check name that should be the same
 public class Booking {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    //    @NotEmpty
-    //    private String name;
+
     @Column(name = "start_date")
     private LocalDate start;
+
+
+//    @FutureOrPresent //TODO: instead check in createBooking
+    @NotNull
+//    @JsonFormat(pattern = TIME_PATTERN)
     @Column(name = "end_date")
     private LocalDate end;
-    //    private String description;
-    @Transient // TODO: tmp
-    @Column(name = "item_id")
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id")
     private Item item;
-    @Transient // TODO: tmp
-    @Column(name = "booker_id")
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "booker_id")
     private User booker;
-    @Enumerated(EnumType.STRING)
+
+    @Enumerated(EnumType.STRING) //TODO: EnumType.ORDINAL
     @Column(name = "status")
     private BookingStatus bookingStatus;
 }

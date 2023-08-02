@@ -42,11 +42,12 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     public List<ItemDto> getUserItems(Integer userId, String text) {
         log.info("Search all items by user id {} by matched text '{}'", userId, text);
-        BooleanExpression byAvailable = QItem.item.available.eq(true);
-        BooleanExpression byTextInName = QItem.item.name.toLowerCase().contains(text.toLowerCase());
-        BooleanExpression byTextInDescr = QItem.item.description.toLowerCase().contains(text.toLowerCase());
         Iterable<Item> foundItems = new ArrayList<>();
         if (text != null && !text.isEmpty()) {
+            BooleanExpression byAvailable = QItem.item.available.eq(true);
+            BooleanExpression byTextInName = QItem.item.name.toLowerCase().contains(text.toLowerCase());
+            BooleanExpression byTextInDescr = QItem.item.description.toLowerCase().contains(text.toLowerCase());
+
             foundItems = repository.findAll(byAvailable.and(byTextInName.or(byTextInDescr)));
         }
         return ItemMapper.mapToItemDto(foundItems);
