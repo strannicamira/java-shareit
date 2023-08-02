@@ -10,6 +10,7 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserBookingDto;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDate;
@@ -44,8 +45,17 @@ public class BookingServiceImpl implements BookingService {
 //            throw new RuntimeException("Booking end is in past");
 //        }
 
+        if (bookingDto.getEnd().isBefore(bookingDto.getStart())) {
+            throw new IllegalStateException("End is before start");
+        }
+
+        if (bookingDto.getEnd().isEqual(bookingDto.getStart())) {
+            log.debug("End {} equals start {}", bookingDto.getEnd(),bookingDto.getStart());
+            throw new IllegalStateException("End equals start");
+        }
+
         bookingDto.setBookerId(userId);
-        bookingDto.setBookingStatus(BookingStatus.WAITING);
+        bookingDto.setStatus(BookingStatus.WAITING);
 
         Booking booking = repository.save(BookingMapper.mapToBooking(bookingDto, item, booker));
 
@@ -67,17 +77,17 @@ public class BookingServiceImpl implements BookingService {
             throw new IllegalStateException("User is not booker");
         }
 
-        if (BookingStatus.WAITING.equals(booking.getBookingStatus())) {
+        if (BookingStatus.WAITING.equals(booking.getStatus())) {
             throw new IllegalStateException("Booking status is WAITING");//TODO:?
         }
 
         BookingStatus bookingStatus = approved ? BookingStatus.APPROVED : BookingStatus.REJECTED;
 
-        if (approved && bookingStatus.equals(booking.getBookingStatus())) {
+        if (approved && bookingStatus.equals(booking.getStatus())) {
             throw new IllegalStateException("Booking status was already APPROVED");//TODO:?
         }
 
-        booking.setBookingStatus(bookingStatus);
+        booking.setStatus(bookingStatus);
 
         Booking bookingSaved = repository.save(booking); // TODO: save or saveAndFlash
         return BookingMapper.mapToBookingDto(bookingSaved);

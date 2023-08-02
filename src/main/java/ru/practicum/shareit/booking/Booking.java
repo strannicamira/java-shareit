@@ -1,16 +1,12 @@
 package ru.practicum.shareit.booking;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
-import javax.validation.constraints.FutureOrPresent;
-import javax.validation.constraints.NotNull;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-import static ru.practicum.shareit.util.Constants.TIME_PATTERN;
 
 @Getter
 @Setter
@@ -18,26 +14,18 @@ import static ru.practicum.shareit.util.Constants.TIME_PATTERN;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "bookings", schema = "public")//TODO: @Table is optional, but check name that should be the same
+@Table(name = "bookings", schema = "public")
 public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotNull
-    @FutureOrPresent
-    @JsonFormat(pattern = TIME_PATTERN)
     @Column(name = "start_date")
-    private LocalDate start;
+    private LocalDateTime start;
 
-
-//    @FutureOrPresent //TODO: instead check in createBooking
-    @NotNull
-    @FutureOrPresent
-    @JsonFormat(pattern = TIME_PATTERN)
     @Column(name = "end_date")
-    private LocalDate end;
+    private LocalDateTime end;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")
@@ -47,7 +35,6 @@ public class Booking {
     @JoinColumn(name = "booker_id")
     private User booker;
 
-    @Enumerated(EnumType.ORDINAL) //TODO: EnumType.ORDINAL
-//    @Column(name = "status")
-    private BookingStatus bookingStatus;
+    @Enumerated(EnumType.ORDINAL)
+    private BookingStatus status;
 }

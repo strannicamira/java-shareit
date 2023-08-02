@@ -14,6 +14,7 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping
+//            (consumes = {"application/json;charset=UTF-8"}, produces = {"application/json;charset=UTF-8"})
     public BookingDto add(@RequestHeader("X-Sharer-User-Id") Integer userId,//TODO: any (existed) user
                           @Valid @RequestBody BookingDto bookingDto) {//TODO: status DEFAULT WAITING
         return bookingService.createBooking(userId, bookingDto);
@@ -41,7 +42,7 @@ public class BookingController {
 
     @GetMapping(value = "/owner")
     public List<BookingDto> getUserItemsBookings(@RequestHeader("X-Sharer-User-Id") Integer userId,
-                                @RequestParam(name = "state", required = false, defaultValue = "ALL") String state) {
+                                                 @RequestParam(name = "state", required = false, defaultValue = "ALL") String state) {
         return bookingService.getUserItemsBookings(userId, state);
     }
 

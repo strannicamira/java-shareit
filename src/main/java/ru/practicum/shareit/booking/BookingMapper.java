@@ -2,10 +2,10 @@ package ru.practicum.shareit.booking;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import ru.practicum.shareit.booking.Booking;
-import ru.practicum.shareit.booking.BookingDto;
 import ru.practicum.shareit.item.Item;
+import ru.practicum.shareit.item.ItemBookingDto;
 import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserBookingDto;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ public class BookingMapper {
         booking.setEnd(bookingDto.getEnd());
         booking.setItem(item);
         booking.setBooker(user);
-        booking.setBookingStatus(bookingDto.getBookingStatus());
+        booking.setStatus(bookingDto.getStatus());
         return booking;
     }
 
@@ -32,7 +32,7 @@ public class BookingMapper {
                 booking.getEnd(),
                 booking.getItem().getId(),
                 booking.getBooker().getId(),
-                booking.getBookingStatus()
+                booking.getStatus()
         );
     }
 
