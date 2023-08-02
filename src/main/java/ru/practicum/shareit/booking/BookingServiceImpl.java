@@ -28,7 +28,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public BookingDto createBooking(Integer userId, BookingDto bookingDto) {
+    public BookingOutDto createBooking(Integer userId, BookingDto bookingDto) {
         log.info("Create booking by booker id {}", userId);
 
         User booker = userRepository.findById(userId)
@@ -50,7 +50,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         if (bookingDto.getEnd().isEqual(bookingDto.getStart())) {
-            log.debug("End {} equals start {}", bookingDto.getEnd(),bookingDto.getStart());
+            log.debug("End {} equals start {}", bookingDto.getEnd(), bookingDto.getStart());
             throw new IllegalStateException("End equals start");
         }
 
@@ -59,12 +59,12 @@ public class BookingServiceImpl implements BookingService {
 
         Booking booking = repository.save(BookingMapper.mapToBooking(bookingDto, item, booker));
 
-        return BookingMapper.mapToBookingDto(booking);
+        return BookingOutMapper.mapToBookingOutDto(booking);
     }
 
     @Override
     @Transactional
-    public BookingDto updateBooking(Integer userId, Integer bookingId, Boolean approved) {
+    public BookingOutDto updateBooking(Integer userId, Integer bookingId, Boolean approved) {
         log.info("Update booking by id {} by accepting {}", bookingId, approved);
 
         User booker = userRepository.findById(userId)
@@ -73,13 +73,13 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = repository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
 
-        if (!userId.equals(booking.getBooker().getId())) {
-            throw new IllegalStateException("User is not booker");
+        if (!userId.equals(booking.getItem().getOwner().getId())) {
+            throw new IllegalStateException("User is not owner");
         }
 
-        if (BookingStatus.WAITING.equals(booking.getStatus())) {
-            throw new IllegalStateException("Booking status is WAITING");//TODO:?
-        }
+//        if (!BookingStatus.WAITING.equals(booking.getStatus())) {
+//            throw new IllegalStateException("Booking status is WAITING");
+//        }
 
         BookingStatus bookingStatus = approved ? BookingStatus.APPROVED : BookingStatus.REJECTED;
 
@@ -90,12 +90,12 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(bookingStatus);
 
         Booking bookingSaved = repository.save(booking); // TODO: save or saveAndFlash
-        return BookingMapper.mapToBookingDto(bookingSaved);
+        return BookingOutMapper.mapToBookingOutDto(bookingSaved);
     }
 
     @Override
     @Transactional
-    public BookingDto getBooking(Integer userId, Integer bookingId) {
+    public BookingOutDto getBooking(Integer userId, Integer bookingId) {
         log.info("Search booking by booking id {}", bookingId);
 
         User booker = userRepository.findById(userId)
@@ -104,38 +104,38 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = repository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
 
-        if (!userId.equals(booking.getBooker().getId())) {
-            throw new IllegalStateException("User is not booker");
+        if (!userId.equals(booking.getBooker().getId()) && !userId.equals(booking.getItem().getOwner().getId())) {
+            throw new IllegalStateException("User is not booker OR User is not item owner");
         }
 
-        if (!userId.equals(booking.getItem().getOwner())) {
-            throw new IllegalStateException("User is not item owner");
-        }
-
-        return BookingMapper.mapToBookingDto(booking);
+        return BookingOutMapper.mapToBookingOutDto(booking);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<BookingDto> getUserBookings(Integer userId, String state) {
+    public List<BookingOutDto> getUserBookings(Integer userId, String state) {
         log.info("Search all bookings by user id {} by matched state '{}'", userId, state);
 
         User booker = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
+        BookingState bookingState = null;
+        if (state != null) {
+            bookingState = BookingState.forValues(state);
 
-        BookingState bookingState = BookingState.forValues(state);
-
-        if (bookingState == null) {
-            throw new IllegalStateException("No such state");
+            if (bookingState == null) {
+                throw new IllegalStateException("No such state");
+            }
+        } else {
+            bookingState = BookingState.ALL;
         }
 
         BooleanExpression byBooker = QBooking.booking.booker.id.eq(userId);
-        Iterable<Booking> booking = getBookings(bookingState, byBooker);
-        return BookingMapper.mapToBookingDto(booking);
+        Iterable<Booking> bookings = getBookings(bookingState, byBooker);
+        return BookingOutMapper.mapToBookingOutDto(bookings);
     }
 
     @Override
-    public List<BookingDto> getUserItemsBookings(Integer userId, String state) {
+    public List<BookingOutDto> getUserItemsBookings(Integer userId, String state) {
         log.info("Search all bookings by user id {}", userId);
         User booker = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -147,8 +147,8 @@ public class BookingServiceImpl implements BookingService {
         }
 
         BooleanExpression byItem = QBooking.booking.item.owner.id.eq(userId);
-        Iterable<Booking> booking = getBookings(bookingState, byItem);
-        return BookingMapper.mapToBookingDto(booking);
+        Iterable<Booking> bookings = getBookings(bookingState, byItem);
+        return BookingOutMapper.mapToBookingOutDto(bookings);
     }
 
     @Override
