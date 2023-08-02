@@ -15,8 +15,8 @@ public class BookingController {
 
     @PostMapping
     public BookingDto add(@RequestHeader("X-Sharer-User-Id") Integer userId,//TODO: any (existed) user
-                          @Valid @RequestBody Booking booking) {//TODO: status DEFAULT WAITING
-        return bookingService.createBooking(userId, booking);
+                          @Valid @RequestBody BookingDto bookingDto) {//TODO: status DEFAULT WAITING
+        return bookingService.createBooking(userId, bookingDto);
     }
 
     @PatchMapping(value = "/{bookingId}")//TODO:?

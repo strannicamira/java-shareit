@@ -4,10 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-import ru.practicum.shareit.item.Item;
-import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.util.Constants;
 
-import javax.persistence.*;
+import javax.validation.constraints.FutureOrPresent;
 import java.time.LocalDate;
 
 @Data
@@ -15,11 +14,12 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class BookingDto {
     private Integer id;
-//    @DateTimeFormat(pattern = TIME_PATTERN)
+//    @DateTimeFormat(pattern = Constants.TIME_PATTERN)
     private LocalDate start;
-//    @DateTimeFormat(pattern = TIME_PATTERN)
+    //    @DateTimeFormat(pattern = TIME_PATTERN)
+//    @FutureOrPresent
     private LocalDate end;
-    private Item item;
-    private User booker;
+    private Integer itemId;
+    private Integer bookerId;
     private BookingStatus bookingStatus;
 }

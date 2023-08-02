@@ -3,20 +3,16 @@ package ru.practicum.shareit.booking;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.booking.*;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemRepository;
-import ru.practicum.shareit.item.QItem;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -31,16 +27,16 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public BookingDto createBooking(Integer userId, Booking booking) {
+    public BookingDto createBooking(Integer userId, BookingDto bookingDto) {
         log.info("Create booking by booker id {}", userId);
 
         User booker = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        Item item = itemRepository.findById(booking.getItem().getId())
+        Item item = itemRepository.findById(bookingDto.getItemId())
                 .orElseThrow(() -> new NotFoundException("Item not found"));
 
-        if (Boolean.FALSE.equals(booking.getItem().getAvailable())) {
+        if (Boolean.FALSE.equals(item.getAvailable())) {
             throw new NotAvailableException("Item is not available");
         }
 
@@ -48,9 +44,11 @@ public class BookingServiceImpl implements BookingService {
 //            throw new RuntimeException("Booking end is in past");
 //        }
 
-        booking.setBooker(booker);
-        booking.setBookingStatus(BookingStatus.WAITING);
-        booking = repository.save(booking);
+        bookingDto.setBookerId(userId);
+        bookingDto.setBookingStatus(BookingStatus.WAITING);
+
+        Booking booking = repository.save(BookingMapper.mapToBooking(bookingDto, item, booker));
+
         return BookingMapper.mapToBookingDto(booking);
     }
 
@@ -126,6 +124,30 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.mapToBookingDto(booking);
     }
 
+    @Override
+    public List<BookingDto> getUserItemsBookings(Integer userId, String state) {
+        log.info("Search all bookings by user id {}", userId);
+        User booker = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        BookingState bookingState = BookingState.forValues(state);
+
+        if (bookingState == null) {
+            throw new IllegalStateException("No such state");
+        }
+
+        BooleanExpression byItem = QBooking.booking.item.owner.id.eq(userId);
+        Iterable<Booking> booking = getBookings(bookingState, byItem);
+        return BookingMapper.mapToBookingDto(booking);
+    }
+
+    @Override
+    @Transactional
+    public void deleteBooking(Integer userId, Integer bookingId) {
+        log.info("Delete booking by user id {} by booking id {}", userId, bookingId);
+        repository.deleteByBookerIdAndId(userId, bookingId);
+    }
+
     private Iterable<Booking> getBookings(BookingState bookingState, BooleanExpression byBooking) {
         BooleanExpression byStart = null;
         BooleanExpression byEnd = null;
@@ -163,31 +185,5 @@ public class BookingServiceImpl implements BookingService {
 
         Iterable<Booking> booking = repository.findAll(byBooking.and(byStart).and(byEnd).and(byStatus));
         return booking;
-    }
-
-
-    @Override
-    public List<BookingDto> getUserItemsBookings(Integer userId, String state) {
-        log.info("Search all bookings by user id {}", userId);
-        User booker = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-
-        BookingState bookingState = BookingState.forValues(state);
-
-        if (bookingState == null) {
-            throw new IllegalStateException("No such state");
-        }
-
-        BooleanExpression byItem = QBooking.booking.item.owner.id.eq(userId);
-        Iterable<Booking> booking = getBookings(bookingState, byItem);
-        return BookingMapper.mapToBookingDto(booking);
-    }
-
-
-    @Override
-    @Transactional
-    public void deleteBooking(Integer userId, Integer bookingId) {
-        log.info("Delete booking by user id {} by booking id {}", userId, bookingId);
-        repository.deleteByBookerIdAndId(userId, bookingId);
     }
 }

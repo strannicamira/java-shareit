@@ -10,6 +10,8 @@ import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
+import static ru.practicum.shareit.util.Constants.TIME_PATTERN;
+
 @Getter
 @Setter
 @ToString
@@ -23,13 +25,17 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @NotNull
+    @FutureOrPresent
+    @JsonFormat(pattern = TIME_PATTERN)
     @Column(name = "start_date")
     private LocalDate start;
 
 
 //    @FutureOrPresent //TODO: instead check in createBooking
     @NotNull
-//    @JsonFormat(pattern = TIME_PATTERN)
+    @FutureOrPresent
+    @JsonFormat(pattern = TIME_PATTERN)
     @Column(name = "end_date")
     private LocalDate end;
 
@@ -41,7 +47,7 @@ public class Booking {
     @JoinColumn(name = "booker_id")
     private User booker;
 
-    @Enumerated(EnumType.STRING) //TODO: EnumType.ORDINAL
-    @Column(name = "status")
+    @Enumerated(EnumType.ORDINAL) //TODO: EnumType.ORDINAL
+//    @Column(name = "status")
     private BookingStatus bookingStatus;
 }
