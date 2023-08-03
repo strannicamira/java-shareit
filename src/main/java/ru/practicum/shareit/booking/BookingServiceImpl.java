@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking;
 
+import com.querydsl.core.types.Visitor;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,10 +11,9 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.UserBookingDto;
 import ru.practicum.shareit.user.UserRepository;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -118,16 +118,8 @@ public class BookingServiceImpl implements BookingService {
 
         User booker = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
-        BookingState bookingState = null;
-        if (state != null) {
-            bookingState = BookingState.forValues(state);
 
-            if (bookingState == null) {
-                throw new IllegalStateException("No such state");
-            }
-        } else {
-            bookingState = BookingState.ALL;
-        }
+        BookingState bookingState = validateBookingState(state);
 
         BooleanExpression byBooker = QBooking.booking.booker.id.eq(userId);
         Iterable<Booking> bookings = getBookings(bookingState, byBooker);
@@ -140,11 +132,7 @@ public class BookingServiceImpl implements BookingService {
         User booker = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        BookingState bookingState = BookingState.forValues(state);
-
-        if (bookingState == null) {
-            throw new IllegalStateException("No such state");
-        }
+        BookingState bookingState = validateBookingState(state);
 
         BooleanExpression byItem = QBooking.booking.item.owner.id.eq(userId);
         Iterable<Booking> bookings = getBookings(bookingState, byItem);
@@ -158,34 +146,54 @@ public class BookingServiceImpl implements BookingService {
         repository.deleteByBookerIdAndId(userId, bookingId);
     }
 
+    private static BookingState validateBookingState(String state) {
+        BookingState bookingState = null;
+        if (state != null) {
+            bookingState = BookingState.forValues(state);
+            if (bookingState == null) {
+                throw new IllegalStateException("Unknown state: UNSUPPORTED_STATUS");
+            }
+        } else {
+            bookingState = BookingState.ALL;
+        }
+        return bookingState;
+    }
+
+
     private Iterable<Booking> getBookings(BookingState bookingState, BooleanExpression byBooking) {
         BooleanExpression byStart = null;
         BooleanExpression byEnd = null;
         BooleanExpression byStatus = null;
+        BooleanExpression bySwtich = null;
 
         switch (bookingState) {
             case CURRENT:
                 log.info("CURRENT");
-                byStart = QBooking.booking.start.before(LocalDate.now());
-                byEnd = QBooking.booking.end.after(LocalDate.now());
+                byStart = QBooking.booking.start.before(LocalDateTime.now());
+                byEnd = QBooking.booking.end.after(LocalDateTime.now());
+                bySwtich = byStart.and(byEnd);
                 break;
             case PAST:
                 log.info("PAST");
 //                byStart = QBooking.booking.start.before(LocalDate.now());
-                byEnd = QBooking.booking.end.before(LocalDate.now());
+                byEnd = QBooking.booking.end.before(LocalDateTime.now());
+                bySwtich=byEnd;
                 break;
             case FUTURE:
                 log.info("FUTURE");
-                byStart = QBooking.booking.start.after(LocalDate.now());
+                byStart = QBooking.booking.start.after(LocalDateTime.now());
 //                byEnd = QBooking.booking.end.after(LocalDate.now());
+                bySwtich=byStart;
                 break;
             case WAITING:
                 log.info("WAITING");
-                byStatus = QBooking.booking.bookingStatus.eq(BookingStatus.WAITING);
+                byStatus = QBooking.booking.status.eq(BookingStatus.WAITING);
+                bySwtich = byStatus;
                 break;
             case REJECTED:
                 log.info("REJECTED");
-                byStatus = QBooking.booking.bookingStatus.eq(BookingStatus.REJECTED);
+                byStatus = QBooking.booking.status.eq(BookingStatus.REJECTED);
+                bySwtich = byStatus;
                 break;
             case ALL:
             default:
@@ -193,7 +201,7 @@ public class BookingServiceImpl implements BookingService {
                 break;
         }
 
-        Iterable<Booking> booking = repository.findAll(byBooking.and(byStart).and(byEnd).and(byStatus));
+        Iterable<Booking> booking = repository.findAll(byBooking.and(bySwtich));
         return booking;
     }
 }
