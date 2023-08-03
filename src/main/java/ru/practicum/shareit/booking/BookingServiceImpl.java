@@ -123,41 +123,15 @@ public class BookingServiceImpl implements BookingService {
     @Transactional(readOnly = true)
     public List<BookingOutDto> getUserBookings(Integer userId, String state) {
         log.info("Search all bookings by user id {} by matched state '{}'", userId, state);
-
-        User booker = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-
-        BookingState bookingState = validateBookingState(state);
-
         BooleanExpression byBooker = QBooking.booking.booker.id.eq(userId);
-        Iterable<Booking> bookings = getBookings(bookingState, byBooker);
-
-        List<BookingOutDto> bookingOutDtos = BookingOutMapper.mapToBookingOutDto(bookings);
-        if (bookingOutDtos == null || bookingOutDtos.isEmpty()) {
-            throw new NotFoundException("Booking not found");
-        }
-
-        return bookingOutDtos;
+        return getBookingOutDtos(userId, state, byBooker);
     }
 
     @Override
     public List<BookingOutDto> getUserItemsBookings(Integer userId, String state) {
         log.info("Search all bookings by user id {}", userId);
-        User booker = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-
-        BookingState bookingState = validateBookingState(state);
-
         BooleanExpression byItem = QBooking.booking.item.owner.id.eq(userId);
-        Iterable<Booking> bookings = getBookings(bookingState, byItem);
-
-
-        List<BookingOutDto> bookingOutDtos = BookingOutMapper.mapToBookingOutDto(bookings);
-        if (bookingOutDtos == null || bookingOutDtos.isEmpty()) {
-            throw new NotFoundException("Booking not found");
-        }
-
-        return bookingOutDtos;
+        return getBookingOutDtos(userId, state, byItem);
     }
 
     @Override
@@ -165,6 +139,22 @@ public class BookingServiceImpl implements BookingService {
     public void deleteBooking(Integer userId, Integer bookingId) {
         log.info("Delete booking by user id {} by booking id {}", userId, bookingId);
         repository.deleteByBookerIdAndId(userId, bookingId);
+    }
+
+    private List<BookingOutDto> getBookingOutDtos(Integer userId, String state, BooleanExpression expression) {
+        User booker = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        BookingState bookingState = validateBookingState(state);
+
+        Iterable<Booking> bookings = getBookings(bookingState, expression);
+
+        List<BookingOutDto> bookingOutDtos = BookingOutMapper.mapToBookingOutDto(bookings);
+        if (bookingOutDtos == null || bookingOutDtos.isEmpty()) {
+            throw new NotFoundException("Booking not found");
+        }
+
+        return bookingOutDtos;
     }
 
     private static BookingState validateBookingState(String state) {
