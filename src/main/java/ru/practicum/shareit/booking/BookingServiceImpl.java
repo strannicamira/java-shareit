@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.user.User;
@@ -15,6 +16,8 @@ import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static ru.practicum.shareit.util.Constants.SORT_BY_ID_DESC;
 
 @Service
 @RequiredArgsConstructor
@@ -34,8 +37,13 @@ public class BookingServiceImpl implements BookingService {
         User booker = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
+
         Item item = itemRepository.findById(bookingDto.getItemId())
                 .orElseThrow(() -> new NotFoundException("Item not found"));
+
+        if (userId.equals(item.getOwner().getId())) {
+            throw new NotOwnerException("Booker is item owner");
+        }
 
         if (Boolean.FALSE.equals(item.getAvailable())) {
             throw new NotAvailableException("Item is not available");
@@ -74,7 +82,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
 
         if (!userId.equals(booking.getItem().getOwner().getId())) {
-            throw new IllegalStateException("User is not owner");
+            throw new NotOwnerException("User is not owner");
         }
 
 //        if (!BookingStatus.WAITING.equals(booking.getStatus())) {
@@ -105,7 +113,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
 
         if (!userId.equals(booking.getBooker().getId()) && !userId.equals(booking.getItem().getOwner().getId())) {
-            throw new IllegalStateException("User is not booker OR User is not item owner");
+            throw new NotOwnerException("User is not booker OR User is not item owner");
         }
 
         return BookingOutMapper.mapToBookingOutDto(booking);
@@ -123,7 +131,13 @@ public class BookingServiceImpl implements BookingService {
 
         BooleanExpression byBooker = QBooking.booking.booker.id.eq(userId);
         Iterable<Booking> bookings = getBookings(bookingState, byBooker);
-        return BookingOutMapper.mapToBookingOutDto(bookings);
+
+        List<BookingOutDto> bookingOutDtos = BookingOutMapper.mapToBookingOutDto(bookings);
+        if (bookingOutDtos == null || bookingOutDtos.isEmpty()) {
+            throw new NotFoundException("Booking not found");
+        }
+
+        return bookingOutDtos;
     }
 
     @Override
@@ -136,7 +150,14 @@ public class BookingServiceImpl implements BookingService {
 
         BooleanExpression byItem = QBooking.booking.item.owner.id.eq(userId);
         Iterable<Booking> bookings = getBookings(bookingState, byItem);
-        return BookingOutMapper.mapToBookingOutDto(bookings);
+
+
+        List<BookingOutDto> bookingOutDtos = BookingOutMapper.mapToBookingOutDto(bookings);
+        if (bookingOutDtos == null || bookingOutDtos.isEmpty()) {
+            throw new NotFoundException("Booking not found");
+        }
+
+        return bookingOutDtos;
     }
 
     @Override
@@ -177,13 +198,13 @@ public class BookingServiceImpl implements BookingService {
                 log.info("PAST");
 //                byStart = QBooking.booking.start.before(LocalDate.now());
                 byEnd = QBooking.booking.end.before(LocalDateTime.now());
-                bySwtich=byEnd;
+                bySwtich = byEnd;
                 break;
             case FUTURE:
                 log.info("FUTURE");
                 byStart = QBooking.booking.start.after(LocalDateTime.now());
 //                byEnd = QBooking.booking.end.after(LocalDate.now());
-                bySwtich=byStart;
+                bySwtich = byStart;
                 break;
             case WAITING:
                 log.info("WAITING");
@@ -201,7 +222,7 @@ public class BookingServiceImpl implements BookingService {
                 break;
         }
 
-        Iterable<Booking> booking = repository.findAll(byBooking.and(bySwtich));
+        Iterable<Booking> booking = repository.findAll(byBooking.and(bySwtich), SORT_BY_ID_DESC);
         return booking;
     }
 }
