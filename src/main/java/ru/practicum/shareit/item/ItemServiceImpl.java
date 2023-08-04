@@ -12,6 +12,7 @@ import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -137,11 +138,16 @@ public class ItemServiceImpl implements ItemService {
         List<BookingOutDto> pastBookingOutDtos = bookingService.getItemsBookingsByUser(itemId, userId, BookingState.PAST.getName());
 
         if(pastBookingOutDtos==null || pastBookingOutDtos.isEmpty()){
-            throw new NotOwnerException("User don't have passed bookings for this item to put comment");
+            throw new IllegalStateException("User don't have passed bookings for this item to put comment");
+        }
+
+        if(comment.getText()==null || comment.getText().isBlank()){
+            throw new IllegalStateException("Empty comment");
         }
 
         comment.setItem(item);
         comment.setAuthor(user);
+        comment.setCreated(LocalDateTime.now());
         Comment commentSaved = commentRepository.save(comment);
         return CommentMapper.mapToCommentItemDto(commentSaved);
     }
