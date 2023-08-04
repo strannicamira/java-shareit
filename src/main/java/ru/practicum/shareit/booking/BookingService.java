@@ -21,6 +21,8 @@ public interface BookingService {
 
     List<BookingOutDto> getUserItemsBookings(Integer userId, String state);
 
+    List<BookingOutDto> getItemsBookingsByUser(Integer item, Integer userId, String state);
+
     @Transactional
     void deleteBooking(Integer userId, Integer bookingId);
 

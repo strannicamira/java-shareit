@@ -5,9 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.LastBooking;
-import ru.practicum.shareit.booking.NextBooking;
-import ru.practicum.shareit.booking.BookingService;
+import ru.practicum.shareit.booking.*;
+import ru.practicum.shareit.comment.*;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.user.User;
@@ -25,6 +24,9 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository repository;
     private final UserRepository userRepository;
     private final BookingService bookingService;
+    private final CommentRepository commentRepository;
+    private final BookingRepository bookingRepository;
+
 
     private static Integer runCount = 0;
 
@@ -61,8 +63,13 @@ public class ItemServiceImpl implements ItemService {
         }
 
         itemWithBookingDto = ItemWithBookingMapper.mapToItemWithBookingDto(item, lastBooking, nextBooking);
+
+
+
         log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\ngetItemWithBooking itemWithBookingDto ( {} ): {}\n", runCount, itemWithBookingDto);
         log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
+
+
         return itemWithBookingDto;
     }
 
@@ -113,6 +120,28 @@ public class ItemServiceImpl implements ItemService {
 
         item = repository.save(item);
         return ItemMapper.mapToItemDto(item);
+    }
+
+    @Override
+    @Transactional
+    public CommentItemDto addNewItemComment(Integer userId, Integer itemId, Comment comment) {
+        log.info("Create comment by user id {} for item id", userId, itemId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        Item item = repository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
+
+        List<BookingOutDto> pastBookingOutDtos = bookingService.getItemsBookingsByUser(itemId, userId, BookingState.PAST.getName());
+
+        if(pastBookingOutDtos==null || pastBookingOutDtos.isEmpty()){
+            throw new NotOwnerException("User don't have passed bookings for this item to put comment");
+        }
+
+        comment.setItem(item);
+        comment.setAuthor(user);
+        Comment commentSaved = commentRepository.save(comment);
+        return CommentMapper.mapToCommentItemDto(commentSaved);
     }
 
     @Override

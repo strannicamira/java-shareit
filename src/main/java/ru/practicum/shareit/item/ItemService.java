@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item;
 
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.comment.Comment;
+import ru.practicum.shareit.comment.CommentItemDto;
 
 import java.util.List;
 
@@ -28,4 +30,6 @@ public interface ItemService {
 
     List<ItemWithBookingDto> getUserItemsWithBooking(Integer userId);
 
-}
+    @Transactional
+    CommentItemDto addNewItemComment(Integer userId, Integer itemId, Comment comment);
+    }

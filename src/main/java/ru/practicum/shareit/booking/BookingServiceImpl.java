@@ -131,9 +131,18 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingOutDto> getUserItemsBookings(Integer userId, String state) {
-        log.info("Search all bookings by item id {}", userId);
+        log.info("Search all bookings by owner user id {}", userId);
         BooleanExpression byItem = QBooking.booking.item.owner.id.eq(userId);
         return getBookingOutDtos(userId, state, byItem, SORT_BY_START_DESC);
+    }
+
+    @Override
+    public List<BookingOutDto> getItemsBookingsByUser(Integer itemId, Integer userId, String state) {
+        log.info("Search all bookings for item id {} by user id {}", itemId, userId);
+        BooleanExpression byItem = QBooking.booking.item.id.eq(itemId);
+        BooleanExpression byBooker = QBooking.booking.booker.id.eq(userId);
+        BooleanExpression byBooking = byItem.and(byBooker);
+        return getBookingOutDtos(userId, state, byBooking, SORT_BY_START_DESC);
     }
 
     @Override
@@ -240,7 +249,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
 
-    public List<BookingOutDto> getUserItemsFutureBookings(Integer userId, Item item) {
+    private List<BookingOutDto> getUserItemsFutureBookings(Integer userId, Item item) {
 
         List<BookingOutDto> bookingOutDtos = getBookingOutDtos(userId, item, BookingState.FUTURE.getName());
         log.info("getUserItemsFutureBookings");
@@ -251,7 +260,7 @@ public class BookingServiceImpl implements BookingService {
         return bookingOutDtos;
     }
 
-    public List<BookingOutDto> getUserItemsPastBookings(Integer userId, Item item) {
+    private List<BookingOutDto> getUserItemsPastBookings(Integer userId, Item item) {
         List<BookingOutDto> curBookingOutDtos = getBookingOutDtos(userId, item, BookingState.CURRENT.getName());
         List<BookingOutDto> pastBookingOutDtos = getBookingOutDtos(userId, item, BookingState.PAST.getName());
         log.info("getUserItemsPastBookings");
@@ -284,7 +293,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
 
-    public LastBooking getUserItemsLastBookings(List<BookingOutDto> bookingOutDtos) {
+    private LastBooking getUserItemsLastBookings(List<BookingOutDto> bookingOutDtos) {
         log.info("Search last booking");
         LastBooking lastBooking = null;
         if (bookingOutDtos != null && !bookingOutDtos.isEmpty()) {
@@ -294,7 +303,7 @@ public class BookingServiceImpl implements BookingService {
         return lastBooking;
     }
 
-    public NextBooking getUserItemsNextBookings(List<BookingOutDto> bookingOutDtos) {
+    private NextBooking getUserItemsNextBookings(List<BookingOutDto> bookingOutDtos) {
         log.info("Search next booking");
         NextBooking nextBooking = null;
         if (bookingOutDtos != null && !bookingOutDtos.isEmpty()) {

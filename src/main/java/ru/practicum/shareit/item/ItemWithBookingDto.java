@@ -5,7 +5,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.booking.LastBooking;
 import ru.practicum.shareit.booking.NextBooking;
+import ru.practicum.shareit.comment.CommentItemDto;
 import ru.practicum.shareit.request.ItemRequest;
+
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -18,4 +21,5 @@ public class ItemWithBookingDto {
     private LastBooking lastBooking;
     private NextBooking nextBooking;
     private ItemRequest itemRequest;
+//    private Set<CommentItemDto> comments;
 }
