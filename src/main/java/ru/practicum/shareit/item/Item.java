@@ -29,7 +29,7 @@ public class Item {
     @Column(name = "is_available")
     private Boolean available;
     @ManyToOne(fetch = FetchType.LAZY)
-    @ToString.Exclude//TODO: ?
+//    @ToString.Exclude//TODO:
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
     @ManyToOne(fetch = FetchType.LAZY)

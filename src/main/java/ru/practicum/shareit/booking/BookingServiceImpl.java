@@ -1,9 +1,9 @@
 package ru.practicum.shareit.booking;
 
-import com.querydsl.core.types.Visitor;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotAvailableException;
@@ -15,9 +15,11 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import static ru.practicum.shareit.util.Constants.SORT_BY_ID_DESC;
+import static ru.practicum.shareit.util.Constants.SORT_BY_START_DESC;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +43,7 @@ public class BookingServiceImpl implements BookingService {
         Item item = itemRepository.findById(bookingDto.getItemId())
                 .orElseThrow(() -> new NotFoundException("Item not found"));
 
-        if (userId.equals(item.getOwner().getId())) {
+        if (userId.equals(item.getOwner().getId())) {//User cannot book for itself
             throw new NotOwnerException("Booker is item owner");
         }
 
@@ -124,14 +126,14 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingOutDto> getUserBookings(Integer userId, String state) {
         log.info("Search all bookings by user id {} by matched state '{}'", userId, state);
         BooleanExpression byBooker = QBooking.booking.booker.id.eq(userId);
-        return getBookingOutDtos(userId, state, byBooker);
+        return getBookingOutDtos(userId, state, byBooker, SORT_BY_START_DESC);
     }
 
     @Override
     public List<BookingOutDto> getUserItemsBookings(Integer userId, String state) {
-        log.info("Search all bookings by user id {}", userId);
+        log.info("Search all bookings by item id {}", userId);
         BooleanExpression byItem = QBooking.booking.item.owner.id.eq(userId);
-        return getBookingOutDtos(userId, state, byItem);
+        return getBookingOutDtos(userId, state, byItem, SORT_BY_START_DESC);
     }
 
     @Override
@@ -141,18 +143,20 @@ public class BookingServiceImpl implements BookingService {
         repository.deleteByBookerIdAndId(userId, bookingId);
     }
 
-    private List<BookingOutDto> getBookingOutDtos(Integer userId, String state, BooleanExpression expression) {
+
+    private List<BookingOutDto> getBookingOutDtos(Integer userId, String state, BooleanExpression expression, Sort sort) {
         User booker = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         BookingState bookingState = validateBookingState(state);
 
-        Iterable<Booking> bookings = getBookings(bookingState, expression);
+        Iterable<Booking> bookings = getBookings(bookingState, expression, sort);
 
         List<BookingOutDto> bookingOutDtos = BookingOutMapper.mapToBookingOutDto(bookings);
-        if (bookingOutDtos == null || bookingOutDtos.isEmpty()) {
-            throw new NotFoundException("Booking not found");
-        }
+
+//        if (bookingOutDtos == null || bookingOutDtos.isEmpty()) {
+//            throw new NotFoundException("Booking not found");
+//        }
 
         return bookingOutDtos;
     }
@@ -171,40 +175,40 @@ public class BookingServiceImpl implements BookingService {
     }
 
 
-    private Iterable<Booking> getBookings(BookingState bookingState, BooleanExpression byBooking) {
+    private Iterable<Booking> getBookings(BookingState bookingState, BooleanExpression expression, Sort sort) {
         BooleanExpression byStart = null;
         BooleanExpression byEnd = null;
         BooleanExpression byStatus = null;
-        BooleanExpression bySwtich = null;
+        BooleanExpression byState = null;
 
         switch (bookingState) {
             case CURRENT:
                 log.info("CURRENT");
                 byStart = QBooking.booking.start.before(LocalDateTime.now());
                 byEnd = QBooking.booking.end.after(LocalDateTime.now());
-                bySwtich = byStart.and(byEnd);
+                byState = byStart.and(byEnd);
                 break;
             case PAST:
                 log.info("PAST");
 //                byStart = QBooking.booking.start.before(LocalDate.now());
                 byEnd = QBooking.booking.end.before(LocalDateTime.now());
-                bySwtich = byEnd;
+                byState = byEnd;
                 break;
             case FUTURE:
                 log.info("FUTURE");
                 byStart = QBooking.booking.start.after(LocalDateTime.now());
 //                byEnd = QBooking.booking.end.after(LocalDate.now());
-                bySwtich = byStart;
+                byState = byStart;
                 break;
             case WAITING:
                 log.info("WAITING");
                 byStatus = QBooking.booking.status.eq(BookingStatus.WAITING);
-                bySwtich = byStatus;
+                byState = byStatus;
                 break;
             case REJECTED:
                 log.info("REJECTED");
                 byStatus = QBooking.booking.status.eq(BookingStatus.REJECTED);
-                bySwtich = byStatus;
+                byState = byStatus;
                 break;
             case ALL:
             default:
@@ -212,7 +216,94 @@ public class BookingServiceImpl implements BookingService {
                 break;
         }
 
-        Iterable<Booking> booking = repository.findAll(byBooking.and(bySwtich), SORT_BY_ID_DESC);
+        Iterable<Booking> bookingLog = repository.findAll(expression, sort);
+
+        log.info("getBookings:");
+        for (Booking b : bookingLog) {
+            log.info("bookingLog:" + b.toString());
+        }
+
+        Iterable<Booking> booking = repository.findAll(expression.and(byState), SORT_BY_ID_DESC);
         return booking;
     }
+
+
+    // To get Item with Booking -------------------------------------
+    @Override
+    public LastBooking getUserItemsLastPastBookings(Integer userId, Item item) {
+        return getUserItemsLastBookings(getUserItemsPastBookings(userId, item));
+    }
+
+    @Override
+    public NextBooking getUserItemsFutureNextBookings(Integer userId, Item item) {
+        return getUserItemsNextBookings(getUserItemsFutureBookings(userId, item));
+    }
+
+
+    public List<BookingOutDto> getUserItemsFutureBookings(Integer userId, Item item) {
+
+        List<BookingOutDto> bookingOutDtos = getBookingOutDtos(userId, item, BookingState.FUTURE.getName());
+        log.info("getUserItemsFutureBookings");
+        log.info("bookingLog:");
+        for (BookingOutDto b : bookingOutDtos) {
+            log.info("bookingLog:" + b.toString());
+        }
+        return bookingOutDtos;
+    }
+
+    public List<BookingOutDto> getUserItemsPastBookings(Integer userId, Item item) {
+        List<BookingOutDto> curBookingOutDtos = getBookingOutDtos(userId, item, BookingState.CURRENT.getName());
+        List<BookingOutDto> pastBookingOutDtos = getBookingOutDtos(userId, item, BookingState.PAST.getName());
+        log.info("getUserItemsPastBookings");
+        log.info("bookingLog:");
+        for (BookingOutDto b : pastBookingOutDtos) {
+            log.info("bookingLog:" + b.toString());
+        }
+        Collections.reverse(pastBookingOutDtos);
+        log.info("getUserItemsPastBookings: after reverse");
+
+        log.info("bookingLog:");
+        for (BookingOutDto b : pastBookingOutDtos) {
+            log.info("bookingLog:" + b.toString());
+        }
+        boolean b = pastBookingOutDtos.addAll(curBookingOutDtos);
+        log.info("getUserItemsPastBookings: after add cur");
+
+        log.info("bookingLog:");
+        for (BookingOutDto bo : pastBookingOutDtos) {
+            log.info("bookingLog:" + bo.toString());
+        }
+        return pastBookingOutDtos;
+    }
+
+
+    private List<BookingOutDto> getBookingOutDtos(Integer userId, Item item, String state) {
+        log.info("Search all bookings for item {} in state {}", item, state);
+        BooleanExpression byItem = QBooking.booking.item.id.eq(item.getId());
+        return getBookingOutDtos(userId, state, byItem, SORT_BY_ID_DESC);
+    }
+
+
+    public LastBooking getUserItemsLastBookings(List<BookingOutDto> bookingOutDtos) {
+        log.info("Search last booking");
+        LastBooking lastBooking = null;
+        if (bookingOutDtos != null && !bookingOutDtos.isEmpty()) {
+            BookingOutDto bookingOutDto = bookingOutDtos.get(0);
+            lastBooking = new LastBooking(bookingOutDto.getId(), bookingOutDto.getBooker().getId());
+        }
+        return lastBooking;
+    }
+
+    public NextBooking getUserItemsNextBookings(List<BookingOutDto> bookingOutDtos) {
+        log.info("Search next booking");
+        NextBooking nextBooking = null;
+        if (bookingOutDtos != null && !bookingOutDtos.isEmpty()) {
+            BookingOutDto bookingOutDto = bookingOutDtos.get(0);
+            nextBooking = new NextBooking(bookingOutDto.getId(), bookingOutDto.getBooker().getId());
+        }
+        return nextBooking;
+    }
+    // ---------------------------------
+
+
 }

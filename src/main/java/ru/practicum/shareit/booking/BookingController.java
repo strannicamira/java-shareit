@@ -37,7 +37,7 @@ public class BookingController {
     @GetMapping()
     public List<BookingOutDto> get(@RequestHeader("X-Sharer-User-Id") Integer userId,
                                 @RequestParam(name = "state", required = false, defaultValue = "ALL") String state) {//TODO: state DEFAULT ALL
-        return bookingService.getUserBookings(userId, state);//TODO: sort by date from new to old
+        return bookingService.getUserBookings(userId, state);
     }
 
     @GetMapping(value = "/owner")

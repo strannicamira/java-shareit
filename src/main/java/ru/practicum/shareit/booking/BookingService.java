@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking;
 
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.item.Item;
 
 import java.util.List;
 
@@ -22,4 +23,8 @@ public interface BookingService {
 
     @Transactional
     void deleteBooking(Integer userId, Integer bookingId);
+
+    LastBooking getUserItemsLastPastBookings(Integer userId, Item item);
+
+    NextBooking getUserItemsFutureNextBookings(Integer userId, Item item);
 }

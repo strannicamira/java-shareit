@@ -5,7 +5,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.LastBooking;
+import ru.practicum.shareit.booking.NextBooking;
+import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
@@ -20,6 +24,9 @@ public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository repository;
     private final UserRepository userRepository;
+    private final BookingService bookingService;
+
+    private static Integer runCount = 0;
 
     @Override
     @Transactional
@@ -29,6 +36,34 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NotFoundException("User not found"));
         Item item = repository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
         return ItemMapper.mapToItemDto(item);
+    }
+
+    @Override
+    @Transactional
+    public ItemWithBookingDto getItemWithBooking(Integer userId, Integer itemId) {
+        runCount++;
+        log.info("Search item by item id {}", itemId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+
+        Item item = repository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
+        log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\ngetItemWithBooking item ( {} ): {}\n", runCount, item);
+        log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
+        LastBooking lastBooking = null;
+        NextBooking nextBooking = null;
+        ItemWithBookingDto itemWithBookingDto = null;
+        if (userId.equals(item.getOwner().getId())) {
+
+            lastBooking = bookingService.getUserItemsLastPastBookings(userId, item);
+            nextBooking = bookingService.getUserItemsFutureNextBookings(userId, item);
+
+        }
+
+        itemWithBookingDto = ItemWithBookingMapper.mapToItemWithBookingDto(item, lastBooking, nextBooking);
+        log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\ngetItemWithBooking itemWithBookingDto ( {} ): {}\n", runCount, itemWithBookingDto);
+        log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
+        return itemWithBookingDto;
     }
 
     @Override

@@ -15,8 +15,8 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping(value = "/{itemId}")
-    public ItemDto get(@RequestHeader("X-Sharer-User-Id") Integer userId, @PathVariable Integer itemId) { // TODO: Check userId?
-        return itemService.getItem(userId, itemId);
+    public ItemWithBookingDto get(@RequestHeader("X-Sharer-User-Id") Integer userId, @PathVariable Integer itemId) { // TODO: Check userId?
+        return itemService.getItemWithBooking(userId, itemId);
     }
 
     @GetMapping()
@@ -36,7 +36,6 @@ public class ItemController {
 
     @PatchMapping(value = "/{id}")//TODO:?
     public ItemDto update(@RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody ItemDto itemDto, @PathVariable("id") Integer itemId) {
-//        return itemService.addNewItem(userId, itemDto); // TODO: Check itemId?
         return itemService.updateItem(userId, itemDto, itemId);
     }
 

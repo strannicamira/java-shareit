@@ -22,4 +22,7 @@ public interface ItemService {
 
     @Transactional
     void deleteItem(Integer userId, Integer itemId);
+
+    @Transactional(readOnly = true)
+    ItemWithBookingDto getItemWithBooking(Integer userId, Integer itemId);
 }
