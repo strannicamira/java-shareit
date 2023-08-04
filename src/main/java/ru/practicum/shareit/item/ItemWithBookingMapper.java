@@ -8,7 +8,6 @@ import ru.practicum.shareit.comment.CommentItemDto;
 import ru.practicum.shareit.user.User;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)

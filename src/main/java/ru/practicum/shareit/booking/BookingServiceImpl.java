@@ -43,7 +43,7 @@ public class BookingServiceImpl implements BookingService {
         Item item = itemRepository.findById(bookingDto.getItemId())
                 .orElseThrow(() -> new NotFoundException("Item not found"));
 
-        if (userId.equals(item.getOwner().getId())) {//User cannot book for itself
+        if (userId.equals(item.getOwner().getId())) {
             throw new NotOwnerException("Booker is item owner");
         }
 

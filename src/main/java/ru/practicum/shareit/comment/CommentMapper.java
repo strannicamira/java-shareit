@@ -12,13 +12,13 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CommentMapper {
     @Valid
-    public static Comment mapToComment(CommentItemDto CommentItemDto, Item item, User user) {
+    public static Comment mapToComment(CommentItemDto commentItemDto, Item item, User user) {
         Comment comment = new Comment();
-        comment.setId(CommentItemDto.getId());
-        comment.setText(CommentItemDto.getText());
+        comment.setId(commentItemDto.getId());
+        comment.setText(commentItemDto.getText());
         comment.setItem(item);
         comment.setAuthor(user);
-        comment.setCreated(CommentItemDto.getCreated());
+        comment.setCreated(commentItemDto.getCreated());
         return comment;
     }
 
