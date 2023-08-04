@@ -4,9 +4,12 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.booking.LastBooking;
 import ru.practicum.shareit.booking.NextBooking;
+import ru.practicum.shareit.comment.CommentItemDto;
 import ru.practicum.shareit.user.User;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.Set;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ItemWithBookingMapper {
@@ -22,7 +25,7 @@ public class ItemWithBookingMapper {
         return item;
     }
 
-    public static ItemWithBookingDto mapToItemWithBookingDto(Item item, LastBooking lastBooking, NextBooking nextBooking) {
+    public static ItemWithBookingDto mapToItemWithBookingDto(Item item, LastBooking lastBooking, NextBooking nextBooking, List<CommentItemDto> comments) {
         return new ItemWithBookingDto(
                 item.getId(),
                 item.getName(),
@@ -30,7 +33,8 @@ public class ItemWithBookingMapper {
                 item.getAvailable(),
                 lastBooking,
                 nextBooking,
-                item.getItemRequest()
+                item.getItemRequest(),
+                comments
         );
     }
 

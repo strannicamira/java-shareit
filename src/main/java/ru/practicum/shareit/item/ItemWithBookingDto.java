@@ -8,6 +8,7 @@ import ru.practicum.shareit.booking.NextBooking;
 import ru.practicum.shareit.comment.CommentItemDto;
 import ru.practicum.shareit.request.ItemRequest;
 
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -21,5 +22,5 @@ public class ItemWithBookingDto {
     private LastBooking lastBooking;
     private NextBooking nextBooking;
     private ItemRequest itemRequest;
-//    private Set<CommentItemDto> comments;
+    private List<CommentItemDto> comments;
 }

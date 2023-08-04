@@ -62,7 +62,9 @@ public class ItemServiceImpl implements ItemService {
 
         }
 
-        itemWithBookingDto = ItemWithBookingMapper.mapToItemWithBookingDto(item, lastBooking, nextBooking);
+        List<Comment> comments = commentRepository.findAllByItemId(itemId);
+        List<CommentItemDto> commentItemDtos = CommentMapper.mapToCommentItemDto(comments);
+        itemWithBookingDto = ItemWithBookingMapper.mapToItemWithBookingDto(item, lastBooking, nextBooking, commentItemDtos);
 
 
 
