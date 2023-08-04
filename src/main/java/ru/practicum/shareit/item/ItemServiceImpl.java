@@ -26,8 +26,6 @@ public class ItemServiceImpl implements ItemService {
     private final BookingService bookingService;
     private final CommentRepository commentRepository;
 
-    private static Integer runCount = 0;
-
     @Override
     @Transactional
     public ItemDto getItem(Integer userId, Integer itemId) {
@@ -41,7 +39,6 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemWithBookingDto getItemWithBooking(Integer userId, Integer itemId) {
-        runCount++;
         log.info("Search item by item id {}", itemId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -117,7 +114,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public CommentItemDto addNewItemComment(Integer userId, Integer itemId, Comment comment) {
-        log.info("Create comment by user id {} for item id", userId, itemId);
+        log.info("Create comment by user id {} for item id {}", userId, itemId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
