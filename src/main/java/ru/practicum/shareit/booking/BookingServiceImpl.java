@@ -15,6 +15,7 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -289,7 +290,11 @@ public class BookingServiceImpl implements BookingService {
     private List<BookingOutDto> getBookingOutDtos(Integer userId, Item item, String state) {
         log.info("Search all bookings for item {} in state {}", item, state);
         BooleanExpression byItem = QBooking.booking.item.id.eq(item.getId());
-        return getBookingOutDtos(userId, state, byItem, SORT_BY_ID_DESC);
+
+        BooleanExpression byStatus =
+                QBooking.booking.status.in(BookingStatus.APPROVED, BookingStatus.WAITING);
+
+        return getBookingOutDtos(userId, state, byItem.and(byStatus), SORT_BY_ID_DESC);
     }
 
 
@@ -297,7 +302,7 @@ public class BookingServiceImpl implements BookingService {
         log.info("Search last booking");
         LastBooking lastBooking = null;
         if (bookingOutDtos != null && !bookingOutDtos.isEmpty()) {
-            BookingOutDto bookingOutDto = bookingOutDtos.get(0);
+            BookingOutDto bookingOutDto = bookingOutDtos.get(bookingOutDtos.size()-1);
             lastBooking = new LastBooking(bookingOutDto.getId(), bookingOutDto.getBooker().getId());
         }
         return lastBooking;
