@@ -233,7 +233,7 @@ public class BookingServiceImpl implements BookingService {
             log.info("bookingLog:" + b.toString());
         }
 
-        Iterable<Booking> booking = repository.findAll(expression.and(byState), SORT_BY_ID_DESC);
+        Iterable<Booking> booking = repository.findAll(expression.and(byState), sort);
         return booking;
     }
 
