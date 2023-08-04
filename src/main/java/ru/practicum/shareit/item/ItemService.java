@@ -25,4 +25,7 @@ public interface ItemService {
 
     @Transactional(readOnly = true)
     ItemWithBookingDto getItemWithBooking(Integer userId, Integer itemId);
+
+    List<ItemWithBookingDto> getUserItemsWithBooking(Integer userId);
+
 }

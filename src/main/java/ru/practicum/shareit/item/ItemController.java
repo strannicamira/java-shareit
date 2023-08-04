@@ -20,8 +20,8 @@ public class ItemController {
     }
 
     @GetMapping()
-    public List<ItemDto> get(@RequestHeader("X-Sharer-User-Id") Integer userId) {
-        return itemService.getUserItems(userId);
+    public List<ItemWithBookingDto> get(@RequestHeader("X-Sharer-User-Id") Integer userId) {
+        return itemService.getUserItemsWithBooking(userId);
     }
 
     @GetMapping(value = "/search")
