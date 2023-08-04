@@ -9,7 +9,6 @@ import ru.practicum.shareit.comment.CommentItemDto;
 import ru.practicum.shareit.request.ItemRequest;
 
 import java.util.List;
-import java.util.Set;
 
 @Data
 @AllArgsConstructor

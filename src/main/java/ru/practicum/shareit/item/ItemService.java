@@ -14,7 +14,7 @@ public interface ItemService {
 
     List<ItemDto> getUserItems(Integer userId);
 
-    @Transactional(readOnly = true) //TODO: ?
+    @Transactional(readOnly = true)
     List<ItemDto> getUserItems(Integer userId, String text);
 
     @Transactional
@@ -32,4 +32,4 @@ public interface ItemService {
 
     @Transactional
     CommentItemDto addNewItemComment(Integer userId, Integer itemId, Comment comment);
-    }
+}

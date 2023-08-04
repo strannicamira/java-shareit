@@ -8,8 +8,8 @@ import ru.practicum.shareit.comment.CommentItemDto;
 import ru.practicum.shareit.user.User;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ItemWithBookingMapper {
@@ -37,13 +37,5 @@ public class ItemWithBookingMapper {
                 comments
         );
     }
-
-//    public static List<ItemWithBookingDto> mapToItemWithBookingDto(Iterable<Item> items) {
-//        List<ItemWithBookingDto> dtos = new ArrayList<>();
-//        for (Item item : items) {
-//            dtos.add(mapToItemWithBookingDto(item));
-//        }
-//        return dtos;
-//    }
 
 }

@@ -14,7 +14,7 @@ public class CommentMapper {
     @Valid
     public static Comment mapToComment(CommentItemDto CommentItemDto, Item item, User user) {
         Comment comment = new Comment();
-        comment.setId(CommentItemDto.getId()); 
+        comment.setId(CommentItemDto.getId());
         comment.setText(CommentItemDto.getText());
         comment.setItem(item);
         comment.setAuthor(user);

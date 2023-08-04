@@ -15,7 +15,6 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -52,10 +51,6 @@ public class BookingServiceImpl implements BookingService {
             throw new NotAvailableException("Item is not available");
         }
 
-//        if(booking.getEnd().isBefore(LocalDate.now())){
-//            throw new RuntimeException("Booking end is in past");
-//        }
-
         if (bookingDto.getEnd().isBefore(bookingDto.getStart())) {
             throw new IllegalStateException("End is before start");
         }
@@ -88,19 +83,15 @@ public class BookingServiceImpl implements BookingService {
             throw new NotOwnerException("User is not owner");
         }
 
-//        if (!BookingStatus.WAITING.equals(booking.getStatus())) {
-//            throw new IllegalStateException("Booking status is WAITING");
-//        }
-
         BookingStatus bookingStatus = approved ? BookingStatus.APPROVED : BookingStatus.REJECTED;
 
         if (approved && bookingStatus.equals(booking.getStatus())) {
-            throw new IllegalStateException("Booking status was already APPROVED");//TODO:?
+            throw new IllegalStateException("Booking status was already APPROVED");
         }
 
         booking.setStatus(bookingStatus);
 
-        Booking bookingSaved = repository.save(booking); // TODO: save or saveAndFlash
+        Booking bookingSaved = repository.save(booking);
         return BookingOutMapper.mapToBookingOutDto(bookingSaved);
     }
 
@@ -164,10 +155,6 @@ public class BookingServiceImpl implements BookingService {
 
         List<BookingOutDto> bookingOutDtos = BookingOutMapper.mapToBookingOutDto(bookings);
 
-//        if (bookingOutDtos == null || bookingOutDtos.isEmpty()) {
-//            throw new NotFoundException("Booking not found");
-//        }
-
         return bookingOutDtos;
     }
 
@@ -200,14 +187,12 @@ public class BookingServiceImpl implements BookingService {
                 break;
             case PAST:
                 log.info("PAST");
-//                byStart = QBooking.booking.start.before(LocalDate.now());
                 byEnd = QBooking.booking.end.before(LocalDateTime.now());
                 byState = byEnd;
                 break;
             case FUTURE:
                 log.info("FUTURE");
                 byStart = QBooking.booking.start.after(LocalDateTime.now());
-//                byEnd = QBooking.booking.end.after(LocalDate.now());
                 byState = byStart;
                 break;
             case WAITING:
@@ -238,7 +223,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
 
-    // To get Item with Booking -------------------------------------
+    // to get Item with Booking -------------------------------------
     @Override
     public LastBooking getUserItemsLastPastBookings(Integer userId, Item item) {
         return getUserItemsLastBookings(getUserItemsPastBookings(userId, item));
@@ -302,7 +287,7 @@ public class BookingServiceImpl implements BookingService {
         log.info("Search last booking");
         LastBooking lastBooking = null;
         if (bookingOutDtos != null && !bookingOutDtos.isEmpty()) {
-            BookingOutDto bookingOutDto = bookingOutDtos.get(bookingOutDtos.size()-1);
+            BookingOutDto bookingOutDto = bookingOutDtos.get(bookingOutDtos.size() - 1);
             lastBooking = new LastBooking(bookingOutDto.getId(), bookingOutDto.getBooker().getId());
         }
         return lastBooking;

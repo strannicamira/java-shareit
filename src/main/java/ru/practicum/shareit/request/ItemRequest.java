@@ -6,8 +6,6 @@ import ru.practicum.shareit.user.User;
 import javax.persistence.*;
 import java.time.LocalDate;
 
-//@Data
-//@Builder
 @Getter
 @Setter
 @AllArgsConstructor

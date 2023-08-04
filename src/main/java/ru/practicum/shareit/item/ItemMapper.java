@@ -13,7 +13,7 @@ public class ItemMapper {
     @Valid
     public static Item mapToItem(ItemDto itemDto, User user) {
         Item item = new Item();
-        item.setId(itemDto.getId()); //TODO: ? https://github.com/praktikum-java/module4_spring_without_boot/blob/repositories/src/main/java/ru/practicum/item/ItemMapper.java
+        item.setId(itemDto.getId());
         item.setName(itemDto.getName());
         item.setDescription(itemDto.getDescription());
         item.setAvailable(itemDto.getAvailable());

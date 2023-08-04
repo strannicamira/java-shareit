@@ -29,8 +29,6 @@ public class BookingOutGetMapper {
     public static BookingOutGetDto mapToBookingOutGetDto(Booking booking) {
         return new BookingOutGetDto(
                 booking.getId(),
-//                booking.getStart(),
-//                booking.getEnd(),
                 new ItemBookingDto(booking.getItem().getId(), booking.getItem().getName()),
                 new UserBookingDto(booking.getBooker().getId()),
                 booking.getStatus()

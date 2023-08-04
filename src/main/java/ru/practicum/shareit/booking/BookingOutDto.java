@@ -21,13 +21,11 @@ public class BookingOutDto {
 
     @NotNull
     @FutureOrPresent
-//    @JsonFormat(pattern = TIME_PATTERN)
     @DateTimeFormat(pattern = TIME_PATTERN)
     private LocalDateTime start;
 
     @NotNull
     @FutureOrPresent
-//    @JsonFormat(pattern = TIME_PATTERN)
     @DateTimeFormat(pattern = TIME_PATTERN)
     private LocalDateTime end;
 

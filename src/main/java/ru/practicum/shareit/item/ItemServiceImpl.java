@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.*;
 import ru.practicum.shareit.comment.*;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
@@ -26,8 +25,6 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingService bookingService;
     private final CommentRepository commentRepository;
-    private final BookingRepository bookingRepository;
-
 
     private static Integer runCount = 0;
 
@@ -49,10 +46,8 @@ public class ItemServiceImpl implements ItemService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-
         Item item = repository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\ngetItemWithBooking item ( {} ): {}\n", runCount, item);
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
+
         LastBooking lastBooking = null;
         NextBooking nextBooking = null;
         ItemWithBookingDto itemWithBookingDto = null;
@@ -66,12 +61,6 @@ public class ItemServiceImpl implements ItemService {
         List<Comment> comments = commentRepository.findAllByItemId(itemId);
         List<CommentItemDto> commentItemDtos = CommentMapper.mapToCommentItemDto(comments);
         itemWithBookingDto = ItemWithBookingMapper.mapToItemWithBookingDto(item, lastBooking, nextBooking, commentItemDtos);
-
-
-
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\ngetItemWithBooking itemWithBookingDto ( {} ): {}\n", runCount, itemWithBookingDto);
-        log.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
-
 
         return itemWithBookingDto;
     }
@@ -137,11 +126,11 @@ public class ItemServiceImpl implements ItemService {
 
         List<BookingOutDto> pastBookingOutDtos = bookingService.getItemsBookingsByUser(itemId, userId, BookingState.PAST.getName());
 
-        if(pastBookingOutDtos==null || pastBookingOutDtos.isEmpty()){
+        if (pastBookingOutDtos == null || pastBookingOutDtos.isEmpty()) {
             throw new IllegalStateException("User don't have passed bookings for this item to put comment");
         }
 
-        if(comment.getText()==null || comment.getText().isBlank()){
+        if (comment.getText() == null || comment.getText().isBlank()) {
             throw new IllegalStateException("Empty comment");
         }
 
@@ -171,7 +160,7 @@ public class ItemServiceImpl implements ItemService {
         itemById.setAvailable(itemDto.getAvailable() == null ? itemById.getAvailable() : itemDto.getAvailable());
         itemById.setOwner(user);
         itemById.setItemRequest(itemDto.getItemRequest() == null ? itemById.getItemRequest() : itemDto.getItemRequest());
-        Item item = repository.save(itemById); // TODO: save or saveAndFlash
+        Item item = repository.save(itemById);
         return ItemMapper.mapToItemDto(item);
     }
 

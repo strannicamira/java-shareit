@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
-//@Component
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserMapper {
     public static UserDto mapToUserDto(User user) {
@@ -19,7 +18,7 @@ public class UserMapper {
 
     public static User mapToUser(UserDto userDto) {
         User user = new User();
-        user.setId(userDto.getId()); // TODO: check
+        user.setId(userDto.getId());
         user.setName(userDto.getName());
         user.setEmail(userDto.getEmail());
         return user;

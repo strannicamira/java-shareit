@@ -24,7 +24,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional//(propagation = Propagation.REQUIRED)
+    @Transactional
     public UserDto getUser(Integer userId) {
         log.info("Search user by id {}", userId);
         User user = repository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
         userById.setName(userDto.getName() == null || userDto.getName().isBlank() ? userById.getName() : userDto.getName());
         userById.setEmail(userDto.getEmail() == null || userDto.getEmail().isBlank() ? userById.getEmail() : userDto.getEmail());
 
-        User savedUser = repository.save(userById); // TODO: save or saveAndFlash
+        User savedUser = repository.save(userById);
 
         return UserMapper.mapToUserDto(savedUser);
     }
