@@ -3,7 +3,6 @@ package ru.practicum.shareit.item;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.shareit.request.ItemRequest;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -11,13 +10,10 @@ import javax.validation.constraints.NotNull;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemDto {
+public class ItemDtoForUpdate {
     private Integer id;
-    @NotEmpty
     private String name;
-    @NotEmpty
     private String description;
-    @NotNull
     private Boolean available;
-    private Integer requestId;
+//    private Integer requestId;
 }

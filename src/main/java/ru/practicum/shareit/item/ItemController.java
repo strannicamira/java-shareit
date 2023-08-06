@@ -32,12 +32,12 @@ public class ItemController {
     }
 
     @PostMapping
-    public ItemDto add(@RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody Item item) {
-        return itemService.addNewItem(userId, item);
+    public ItemDto add(@RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody ItemDto itemDto) {
+        return itemService.createItem(userId, itemDto);
     }
 
     @PatchMapping(value = "/{id}")//TODO:?
-    public ItemDto update(@RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody ItemDto itemDto, @PathVariable("id") Integer itemId) {
+    public ItemDto update(@RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody ItemDtoForUpdate itemDto, @PathVariable("id") Integer itemId) {
         return itemService.updateItem(userId, itemDto, itemId);
     }
 

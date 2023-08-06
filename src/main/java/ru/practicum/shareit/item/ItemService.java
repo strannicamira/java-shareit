@@ -13,9 +13,9 @@ public interface ItemService {
 
     List<ItemDto> getUserItems(Integer userId, String text);
 
-    ItemDto addNewItem(Integer userId, Item item);
+    ItemDto createItem(Integer userId, ItemDto itemDto);
 
-    ItemDto updateItem(Integer userId, ItemDto itemDto, Integer itemId);
+    ItemDto updateItem(Integer userId, ItemDtoForUpdate itemDto, Integer itemId);
 
     void deleteItem(Integer userId, Integer itemId);
 
