@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum BookingStatus {
-    WAITING(1, "Waiting"),
-    APPROVED(2, "Approved"),
-    REJECTED(3, "Rejected"),
-    CANCELED(4, "Canceled");
+    WAITING(0, "WAITING"),
+    APPROVED(1, "APPROVED"),
+    REJECTED(2, "REJECTED"),
+    CANCELED(3, "CANCELED");
 
     private final Integer id;
     private final String name;

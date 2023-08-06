@@ -1,0 +1,6 @@
+INSERT INTO PUBLIC.STATUSES
+(ID, NAME)
+VALUES (0, 'WAITING'),
+       (1, 'APPROVED'),
+       (2, 'REJECTED'),
+       (3, 'CANCELED');

@@ -1,13 +1,11 @@
-package ru.practicum.shareit.item.dto;
+package ru.practicum.shareit.item;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.shareit.request.ItemRequest;
 
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ItemDto {

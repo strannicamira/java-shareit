@@ -2,16 +2,18 @@ package ru.practicum.shareit.item;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import ru.practicum.shareit.booking.LastBooking;
+import ru.practicum.shareit.booking.NextBooking;
+import ru.practicum.shareit.comment.CommentItemDto;
 import ru.practicum.shareit.user.User;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ItemMapper {
+public class ItemWithBookingMapper {
     @Valid
-    public static Item mapToItem(ItemDto itemDto, User user) {
+    public static Item mapToItem(ItemWithBookingDto itemDto, User user) {
         Item item = new Item();
         item.setId(itemDto.getId());
         item.setName(itemDto.getName());
@@ -22,22 +24,17 @@ public class ItemMapper {
         return item;
     }
 
-    public static ItemDto mapToItemDto(Item item) {
-        return new ItemDto(
+    public static ItemWithBookingDto mapToItemWithBookingDto(Item item, LastBooking lastBooking, NextBooking nextBooking, List<CommentItemDto> comments) {
+        return new ItemWithBookingDto(
                 item.getId(),
                 item.getName(),
                 item.getDescription(),
                 item.getAvailable(),
-                item.getItemRequest()
+                lastBooking,
+                nextBooking,
+                item.getItemRequest(),
+                comments
         );
-    }
-
-    public static List<ItemDto> mapToItemDto(Iterable<Item> items) {
-        List<ItemDto> dtos = new ArrayList<>();
-        for (Item item : items) {
-            dtos.add(mapToItemDto(item));
-        }
-        return dtos;
     }
 
 }

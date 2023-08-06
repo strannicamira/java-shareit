@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.DuplicateEmailFoundException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,12 +23,12 @@ public class UserStorageImpl implements UserStorage {
     private Integer id = 0;
 
     @Override
-    public List<User> findAll() {
+    public List<User> getAllUsers() {
         return new ArrayList<>(users.values());
     }
 
     @Override
-    public User findById(Integer id) {
+    public User getUser(Integer id) {
         return Optional.ofNullable(users.get(id)).orElseThrow(() ->
                 new NotFoundException("Пользователь не найден в списке."));
     }
@@ -45,7 +44,7 @@ public class UserStorageImpl implements UserStorage {
     }
 
     @Override
-    public User create(User user) {
+    public User saveUser(User user) {
         if (findByEmail(user.getEmail()) != null) {
             throw new DuplicateEmailFoundException("Пользователь с такой почтой уже существует");
         }
@@ -55,21 +54,21 @@ public class UserStorageImpl implements UserStorage {
     }
 
     @Override
-    public UserDto update(Integer id, UserDto userDto) {
-        User user = findById(id);
-        userDto.setId(id);
-        userDto.setName(userDto.getName() == null ? user.getName() : userDto.getName());
-        User existingUser = findByEmail(userDto.getEmail());
-        if (existingUser != null && !existingUser.getId().equals(id)) {
+    public User updateUser(Integer id, User user) {
+        User userWithTheSameEmail = findByEmail(user.getEmail());
+        if (userWithTheSameEmail != null && !userWithTheSameEmail.getId().equals(id)) {
             throw new DuplicateEmailFoundException("Пользователь с такой почтой уже существует");
         }
-        userDto.setEmail(userDto.getEmail() == null ? user.getEmail() : userDto.getEmail());
-        users.put(id, UserMapper.toUser(userDto));
-        return userDto;
+        User obsoledUser = getUser(id);
+        user.setId(id);
+        user.setName(user.getName() == null ? obsoledUser.getName() : user.getName());
+        user.setEmail(user.getEmail() == null ? obsoledUser.getEmail() : user.getEmail());
+        users.put(id, user);
+        return user;
     }
 
     @Override
-    public void deleteUserById(Integer id) {
+    public void deleteUser(Integer id) {
         users.remove(id);
     }
 }
