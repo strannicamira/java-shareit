@@ -32,6 +32,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     private final ItemRequestRepository itemRequestRepository;
     private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
 
     @Override
     @Transactional
@@ -44,7 +45,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         itemRequest.setCreated(LocalDateTime.now());
 
         itemRequest = itemRequestRepository.save(itemRequest);
-        return ItemRequestMapper.mapToItemRequestDto(itemRequest);
+        return ItemRequestMapper.mapToItemRequestDto(itemRequest,null);
     }
 
     @Override
@@ -52,9 +53,16 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         log.info("Search item requests by requester id {}", userId);
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
 
-        List<ItemRequest>  itemRequests = itemRequestRepository.findAllByRequesterId(userId, SORT_BY_REQUEST_CREATED_DESC);
+        List<ItemRequest> itemRequests = itemRequestRepository.findAllByRequesterId(userId, SORT_BY_REQUEST_CREATED_DESC);
 
-        return ItemRequestMapper.mapToItemRequestDto(itemRequests);
+        List<ItemRequestDto> itemRequestDtos = new ArrayList<>();
+        for (ItemRequest request : itemRequests) {
+            List<Item> items = itemRepository.findAllByItemRequestId(request.getId());
+            List<ItemDto> dtos=  ItemMapper.mapToItemDto(items);
+            itemRequestDtos.add(ItemRequestMapper.mapToItemRequestDto(request, dtos));
+        }
+
+        return itemRequestDtos;
     }
 
     @Override
@@ -62,7 +70,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         log.info("Search item request by id {}", requestId);
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         ItemRequest itemRequest = itemRequestRepository.findById(requestId).orElseThrow(() -> new NotFoundException("Item not found"));
-        return ItemRequestMapper.mapToItemRequestDto(itemRequest);
+        List<Item> items = itemRepository.findAllByItemRequestId(itemRequest.getId());
+
+        List<ItemDto> dtos = ItemMapper.mapToItemDto(items);
+        return ItemRequestMapper.mapToItemRequestDto(itemRequest, dtos);
     }
 
     @Override

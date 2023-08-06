@@ -12,4 +12,6 @@ public interface ItemRepository extends JpaRepository<Item, Integer>, QuerydslPr
     Optional<Item> findByOwnerIdAndId(Integer userId, Integer itemId);
 
     void deleteByOwnerIdAndId(Integer userId, Integer itemId);
+
+    List<Item> findAllByItemRequestId(Integer id);
 }

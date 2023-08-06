@@ -14,7 +14,7 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "items", schema = "public")//TODO: @Table is optional, but check name that should be the same
+@Table(name = "items", schema = "public")
 public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +27,7 @@ public class Item {
     @Column(name = "is_available")
     private Boolean available;
     @ManyToOne(fetch = FetchType.LAZY)
-//    @ToString.Exclude//TODO:
+    @ToString.Exclude//TODO:
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
     @ManyToOne(fetch = FetchType.LAZY)

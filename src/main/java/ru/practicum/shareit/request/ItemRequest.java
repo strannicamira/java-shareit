@@ -1,12 +1,15 @@
 package ru.practicum.shareit.request;
 
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import static ru.practicum.shareit.util.Constants.TIME_PATTERN;
 
 @Getter
 @Setter
@@ -24,5 +27,6 @@ public class ItemRequest {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "requester_id", nullable = false)
     private User requester;
+    @DateTimeFormat(pattern = TIME_PATTERN)
     private LocalDateTime created;
 }
