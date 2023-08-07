@@ -2,7 +2,6 @@ package ru.practicum.shareit.request;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,7 +78,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
 
-        if (from != null || size != null) {
+        if (from != null && size != null) {
 
             if (from < 0 || size < 0) {
                 throw new IllegalStateException("Not correct page parameters");

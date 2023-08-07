@@ -119,7 +119,7 @@ public class BookingServiceImpl implements BookingService {
     private static Pageable getPage(Integer from, Integer size) {
         Sort sort = SORT_BY_START_DESC;
         Pageable page = null;
-        if (from != null || size != null) {
+        if (from != null && size != null) {
 
             if (from < 0 || size < 0) {
                 throw new IllegalStateException("Not correct page parameters");
@@ -152,7 +152,7 @@ public class BookingServiceImpl implements BookingService {
         Pageable page = getPage(from, size);
         if (page != null) {
             bookingOutDtos = getBookingOutDtos(userId, state, byBooker, page);
-        } else{
+        } else {
             bookingOutDtos = getBookingOutDtos(userId, state, byBooker, SORT_BY_START_DESC);
 
         }
@@ -168,7 +168,7 @@ public class BookingServiceImpl implements BookingService {
         List<BookingOutDto> bookingOutDtos = new ArrayList<>();
         if (page != null) {
             bookingOutDtos = getBookingOutDtos(userId, state, byItem, page);
-        } else{
+        } else {
             bookingOutDtos = getBookingOutDtos(userId, state, byItem, SORT_BY_START_DESC);
 
         }

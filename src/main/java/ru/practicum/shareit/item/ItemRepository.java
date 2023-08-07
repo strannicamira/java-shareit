@@ -2,7 +2,6 @@ package ru.practicum.shareit.item;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-import ru.practicum.shareit.request.ItemRequest;
 
 import java.util.List;
 import java.util.Optional;
