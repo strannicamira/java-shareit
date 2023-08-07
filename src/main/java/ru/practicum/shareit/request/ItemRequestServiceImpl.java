@@ -3,6 +3,7 @@ package ru.practicum.shareit.request;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.*;
@@ -45,7 +46,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         itemRequest.setCreated(LocalDateTime.now());
 
         itemRequest = itemRequestRepository.save(itemRequest);
-        return ItemRequestMapper.mapToItemRequestDto(itemRequest,null);
+        return ItemRequestMapper.mapToItemRequestDto(itemRequest, null);
     }
 
     @Override
@@ -56,9 +57,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         List<ItemRequest> itemRequests = itemRequestRepository.findAllByRequesterId(userId, SORT_BY_REQUEST_CREATED_DESC);
 
         List<ItemRequestDto> itemRequestDtos = new ArrayList<>();
+
         for (ItemRequest request : itemRequests) {
             List<Item> items = itemRepository.findAllByItemRequestId(request.getId());
-            List<ItemDto> dtos=  ItemMapper.mapToItemDto(items);
+            List<ItemDto> dtos = ItemMapper.mapToItemDto(items);
             itemRequestDtos.add(ItemRequestMapper.mapToItemRequestDto(request, dtos));
         }
 
@@ -78,7 +80,28 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     @Override
-    public List<ItemDto> get(Integer userId, Integer from, Integer size) {
-        return new ArrayList<ItemDto>();
+    public List<ItemRequestDto> get(Integer userId, Integer from, Integer size) {
+        log.info("Search item requests by request id {} page by page", userId);
+        List<ItemRequest> itemRequests = new ArrayList<>();
+        List<ItemRequestDto> itemRequestDtos = new ArrayList<>();
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (from != null || size != null) {
+
+            if (from < 0 || size < 0) {
+                throw new IllegalStateException("Not correct page parameters");
+            }
+            PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
+            itemRequests = itemRequestRepository.findAllByRequesterId(userId, page);
+
+
+            for (ItemRequest request : itemRequests) {
+                List<Item> items = itemRepository.findAllByItemRequestId(request.getId());
+                List<ItemDto> dtos = ItemMapper.mapToItemDto(items);
+                itemRequestDtos.add(ItemRequestMapper.mapToItemRequestDto(request, dtos));
+            }
+        }
+        return itemRequestDtos;
     }
 }
