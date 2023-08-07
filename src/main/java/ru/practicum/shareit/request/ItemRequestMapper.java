@@ -23,13 +23,14 @@ public class ItemRequestMapper {
     }
 
     public static ItemRequestDto mapToItemRequestDto(ItemRequest itemRequest, List<ItemDto> dtos) {
-        return new ItemRequestDto(
+        ItemRequestDto itemRequestDto = new ItemRequestDto(
                 itemRequest.getId(),
                 itemRequest.getDescription(),
-                itemRequest.getRequester(),
+//                itemRequest.getRequester(),
                 itemRequest.getCreated(),
                 dtos
         );
+        return itemRequestDto;
     }
 
 //    public static List<ItemRequestDto> mapToItemRequestDto(Iterable<ItemRequest> itemRequests) {

@@ -19,7 +19,7 @@ import static ru.practicum.shareit.util.Constants.TIME_PATTERN;
 public class ItemRequestDto {
     private Integer id;
     private String description;
-    private User requester;
+//    private User requester;
     @DateTimeFormat(pattern = TIME_PATTERN)
     private LocalDateTime created;
     private List<ItemDto> items;
