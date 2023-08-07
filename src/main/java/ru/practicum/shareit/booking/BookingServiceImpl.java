@@ -3,6 +3,8 @@ package ru.practicum.shareit.booking;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,7 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -113,19 +116,63 @@ public class BookingServiceImpl implements BookingService {
         return BookingOutMapper.mapToBookingOutDto(booking);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<BookingOutDto> getUserBookings(Integer userId, String state) {
-        log.info("Search all bookings by user id {} by matched state '{}'", userId, state);
-        BooleanExpression byBooker = QBooking.booking.booker.id.eq(userId);
-        return getBookingOutDtos(userId, state, byBooker, SORT_BY_START_DESC);
+    private static Pageable getPage(Integer from, Integer size) {
+        Sort sort = SORT_BY_START_DESC;
+        Pageable page = null;
+        if (from != null || size != null) {
+
+            if (from < 0 || size < 0) {
+                throw new IllegalStateException("Not correct page parameters");
+            }
+            page = PageRequest.of(from > 0 ? from / size : 0, size, sort);
+        }
+        return page;
     }
 
+    private List<BookingOutDto> getBookingOutDtos(Integer userId, String state, BooleanExpression expression, Pageable page) {
+        User booker = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+
+        BookingState bookingState = validateBookingState(state);
+
+        Iterable<Booking> bookings = getBookings(bookingState, expression, page);
+
+        List<BookingOutDto> bookingOutDtos = BookingOutMapper.mapToBookingOutDto(bookings);
+
+        return bookingOutDtos;
+    }
+
+
     @Override
-    public List<BookingOutDto> getUserItemsBookings(Integer userId, String state) {
+    @Transactional(readOnly = true)
+    public List<BookingOutDto> getUserBookings(Integer userId, String state, Integer from, Integer size) {
+        log.info("Search all bookings by user id {} by matched state '{}'", userId, state);
+        BooleanExpression byBooker = QBooking.booking.booker.id.eq(userId);
+
+        List<BookingOutDto> bookingOutDtos = new ArrayList<>();
+        Pageable page = getPage(from, size);
+        if (page != null) {
+            bookingOutDtos = getBookingOutDtos(userId, state, byBooker, page);
+        } else{
+            bookingOutDtos = getBookingOutDtos(userId, state, byBooker, SORT_BY_START_DESC);
+
+        }
+        return bookingOutDtos;
+    }
+
+
+    @Override
+    public List<BookingOutDto> getUserItemsBookings(Integer userId, String state, Integer from, Integer size) {
         log.info("Search all bookings by owner user id {}", userId);
         BooleanExpression byItem = QBooking.booking.item.owner.id.eq(userId);
-        return getBookingOutDtos(userId, state, byItem, SORT_BY_START_DESC);
+        Pageable page = getPage(from, size);
+        List<BookingOutDto> bookingOutDtos = new ArrayList<>();
+        if (page != null) {
+            bookingOutDtos = getBookingOutDtos(userId, state, byItem, page);
+        } else{
+            bookingOutDtos = getBookingOutDtos(userId, state, byItem, SORT_BY_START_DESC);
+
+        }
+        return bookingOutDtos;
     }
 
     @Override
@@ -172,11 +219,30 @@ public class BookingServiceImpl implements BookingService {
     }
 
 
+    private Iterable<Booking> getBookings(BookingState bookingState, BooleanExpression expression, Pageable page) {
+        BooleanExpression byState = null;
+
+        byState = getBooleanExpression(bookingState);
+
+        Iterable<Booking> booking = repository.findAll(expression.and(byState), page);
+        return booking;
+    }
+
     private Iterable<Booking> getBookings(BookingState bookingState, BooleanExpression expression, Sort sort) {
+        BooleanExpression byState = null;
+
+        byState = getBooleanExpression(bookingState);
+
+        Iterable<Booking> booking = repository.findAll(expression.and(byState), sort);
+        return booking;
+    }
+
+    private static BooleanExpression getBooleanExpression(BookingState bookingState) {
+        BooleanExpression byState = null;
+
         BooleanExpression byStart = null;
         BooleanExpression byEnd = null;
         BooleanExpression byStatus = null;
-        BooleanExpression byState = null;
 
         switch (bookingState) {
             case CURRENT:
@@ -210,16 +276,7 @@ public class BookingServiceImpl implements BookingService {
                 log.info("ALL");
                 break;
         }
-
-        Iterable<Booking> bookingLog = repository.findAll(expression, sort);
-
-        log.info("getBookings:");
-        for (Booking b : bookingLog) {
-            log.info("bookingLog:" + b.toString());
-        }
-
-        Iterable<Booking> booking = repository.findAll(expression.and(byState), sort);
-        return booking;
+        return byState;
     }
 
 
