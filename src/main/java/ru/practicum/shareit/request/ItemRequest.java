@@ -6,7 +6,6 @@ import ru.practicum.shareit.user.User;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import static ru.practicum.shareit.util.Constants.TIME_PATTERN;
