@@ -44,12 +44,14 @@ public class UserServiceImpl implements UserService {
     public UserDto updateUser(Integer userId, UserDto userDto) {
         log.info("Update user by id {}", userId);
 
+        //TODO: extract method
         User userById = repository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
 
+        //TODO: extract method
         userById.setName(userDto.getName() == null || userDto.getName().isBlank() ? userById.getName() : userDto.getName());
         userById.setEmail(userDto.getEmail() == null || userDto.getEmail().isBlank() ? userById.getEmail() : userDto.getEmail());
 
-        User savedUser = repository.save(userById);
+        User savedUser = repository.saveAndFlush(userById);
 
         return UserMapper.mapToUserDto(savedUser);
     }
