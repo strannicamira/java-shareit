@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
         log.info("Update user by id {}", userId);
 
         //TODO: extract method
-        User userById = repository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+        User userById = repository.findById(userId).orElseThrow(() -> new NotFoundException("User not found user by id to update: " + userId));
 
         //TODO: extract method
         userById.setName(userDto.getName() == null || userDto.getName().isBlank() ? userById.getName() : userDto.getName());

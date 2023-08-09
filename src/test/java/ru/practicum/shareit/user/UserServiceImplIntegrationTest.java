@@ -29,7 +29,7 @@ public class UserServiceImplIntegrationTest {
 
         userService.saveUser(userDto);
 
-        User user = repository.findById(1).orElseThrow(() -> new NotFoundException("User not found"));
+        User user = repository.findById(1).orElseThrow(() -> new NotFoundException("User not found from saveUser"));
 
         assertThat(user.getId(), notNullValue());
         assertThat(user.getName(), equalTo(userDto.getName()));
@@ -39,32 +39,32 @@ public class UserServiceImplIntegrationTest {
     @Test
     void updateUser() {
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
-        userService.saveUser(userDto);
+        UserDto savedUserDto = userService.saveUser(userDto);
 
-        Integer userId = 1;
+        Integer userId = savedUserDto.getId();
         UserDto userDtoToUpdate = makeUserDto("Up Date", "update@email.com");
 
         userService.updateUser(userId, userDtoToUpdate);
 
-        User savedUser = repository.findById(1).orElseThrow(() -> new NotFoundException("User not found"));
+        User foundUser = repository.findById(userId).orElseThrow(() -> new NotFoundException("User not found from updateUser"));
 
-        assertThat(savedUser.getId(), equalTo(userId));
-        assertThat(savedUser.getName(), equalTo(userDtoToUpdate.getName()));
-        assertThat(savedUser.getEmail(), equalTo(userDtoToUpdate.getEmail()));
+        assertThat(foundUser.getId(), equalTo(userId));
+        assertThat(foundUser.getName(), equalTo(userDtoToUpdate.getName()));
+        assertThat(foundUser.getEmail(), equalTo(userDtoToUpdate.getEmail()));
     }
 
 
     @Test
     void updateUserName() {
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
-        userService.saveUser(userDto);
+        UserDto savedUserDto = userService.saveUser(userDto);
 
-        Integer userId = 1;
+        Integer userId = savedUserDto.getId();
         UserDto userDtoToUpdate = makeUserDtoByName("Up Date");
 
         userService.updateUser(userId, userDtoToUpdate);
 
-        User savedUser = repository.findById(1).orElseThrow(() -> new NotFoundException("User not found"));
+        User savedUser = repository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
 
         assertThat(savedUser.getId(), equalTo(userId));
         assertThat(savedUser.getName(), equalTo(userDtoToUpdate.getName()));
@@ -76,13 +76,14 @@ public class UserServiceImplIntegrationTest {
 
     @Test
     void updateUser_whenIdDoesntExist_thenThrowNotFoundException() {
+        UserDto userDto = makeUserDto("John Doe", "some@email.com");
+        UserDto savedUserDto = userService.saveUser(userDto);
 
-        Integer userId = 2;
+        Integer userId = 100;
         UserDto userDtoToUpdate = makeUserDto("Up Date", "update@email.com");
 //        User savedMockedUser = new User(1, "Up Date", "update@email.com");
 
         UserDto userDtoToSave = makeUserDto("John Doe", "some@email.com");
-        userService.updateUser(userId, userDtoToSave);
 
         assertThrows(NotFoundException.class, () -> userService.updateUser(userId, userDtoToUpdate));
     }
