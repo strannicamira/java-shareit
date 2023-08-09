@@ -1,12 +1,12 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserDto;
 import ru.practicum.shareit.user.UserService;
 
@@ -14,6 +14,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
+@Slf4j
 @Transactional
 @SpringBootTest(
         properties = "db.name=shareittest",
@@ -31,16 +32,22 @@ public class ItemServiceImplIntegrationTest {
         UserDto savedUserDto = userService.createUser(userDto);
 
         ItemDto itemDto = makeItemDto("Something", "Some thing");
-        itemService.createItem(savedUserDto.getId(),itemDto);
-        Integer itemId = 1;
+        ItemDto itemDtoCreated = itemService.createItem(savedUserDto.getId(), itemDto);
+        Integer itemId = itemDtoCreated.getId();
 
-        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
+        log.info("Item created by id " + itemId);
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found by id " + itemId));
 
         assertThat(item.getId(), notNullValue());
         assertThat(item.getName(), equalTo(itemDto.getName()));
         assertThat(item.getDescription(), equalTo(itemDto.getDescription()));
         assertThat(item.getAvailable(), equalTo(Boolean.TRUE));
         assertThat(item.getItemRequest(), equalTo(null));
+    }
+
+    @Test
+    void createItemComment() {
+        //TODO:
     }
 
     @Test
@@ -52,13 +59,16 @@ public class ItemServiceImplIntegrationTest {
         ItemDto itemDto = makeItemDto("Something", "Some thing");
         ItemDto item = itemService.createItem(savedUserDto.getId(), itemDto);
         Integer itemId = item.getId();
+        log.info("Item created by id " + itemId);
 
         ItemDtoForUpdate itemDtoForUpdate = makeItemDtoForUpdate("Updatething", "Update thing", Boolean.TRUE);
-        itemService.updateItem(userId,itemDtoForUpdate,itemId);
+        ItemDto itemUpdated = itemService.updateItem(userId, itemDtoForUpdate, itemId);
+        Integer itemIdUpdated = itemUpdated.getId();
+        log.info("Item updated by id " + itemIdUpdated);
 
         Item updatedItem = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
 
-        assertThat(updatedItem.getId(),  equalTo(itemId));
+        assertThat(updatedItem.getId(), equalTo(itemId));
         assertThat(updatedItem.getName(), equalTo(itemDtoForUpdate.getName()));
         assertThat(updatedItem.getDescription(), equalTo(itemDtoForUpdate.getDescription()));
         assertThat(updatedItem.getAvailable(), equalTo(itemDtoForUpdate.getAvailable()));
@@ -66,9 +76,6 @@ public class ItemServiceImplIntegrationTest {
         assertThat(updatedItem.getOwner().getId(), equalTo(userId));
 
     }
-
-
-
 
 
     private UserDto makeUserDto(String name, String email) {

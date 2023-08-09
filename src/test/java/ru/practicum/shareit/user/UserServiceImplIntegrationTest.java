@@ -27,9 +27,10 @@ public class UserServiceImplIntegrationTest {
     void createUser() {
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
 
-        userService.createUser(userDto);
+        UserDto createdUserDto = userService.createUser(userDto);
+        Integer createdUserId = createdUserDto.getId();
 
-        User user = repository.findById(1).orElseThrow(() -> new NotFoundException("User not found from saveUser"));
+        User user = repository.findById(createdUserId).orElseThrow(() -> new NotFoundException("User not found from saveUser"));
 
         assertThat(user.getId(), notNullValue());
         assertThat(user.getName(), equalTo(userDto.getName()));

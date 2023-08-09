@@ -11,13 +11,10 @@ import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.comment.CommentRepository;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.request.ItemRequestRepository;
-import ru.practicum.shareit.request.ItemRequestService;
 import ru.practicum.shareit.user.*;
 
 import java.util.Optional;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyInt;
 
@@ -43,7 +40,7 @@ public class ItemServiceImplUnitTest {
 //    private final UserMapper userMapper;
 
     @Test
-    void updateUser_whenIdDoesntExist_thenThrowNotFoundException() {
+    void updateItem_whenIdDoesntExist_thenThrowNotFoundException() {
         UserService userService = new UserServiceImpl(mockUserRepository);
         UserDto userDtoToCreate = makeUserDto("User Name", "user@email.com");
 //        UserDto user = userService.createUser(userDtoToCreate);
