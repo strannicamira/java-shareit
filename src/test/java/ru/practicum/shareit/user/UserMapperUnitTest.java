@@ -15,9 +15,9 @@ import static org.hamcrest.Matchers.equalTo;
         webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class UserMapperUnitTest {
-//TODO: ?
+    //TODO: ?
     @Test
-    void mapToUserTest(){
+    void mapToUserTest() {
         UserDto userDto = new UserDto(1, "John Doe", "some@email.com");
         User expectedUser = new User(1, "John Doe", "some@email.com");
         User mappedUser = UserMapper.mapToUser(userDto);
