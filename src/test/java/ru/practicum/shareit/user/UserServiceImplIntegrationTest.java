@@ -24,10 +24,10 @@ public class UserServiceImplIntegrationTest {
     private final UserRepository repository;
 
     @Test
-    void saveUser() {
+    void createUser() {
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
 
-        userService.saveUser(userDto);
+        userService.createUser(userDto);
 
         User user = repository.findById(1).orElseThrow(() -> new NotFoundException("User not found from saveUser"));
 
@@ -39,7 +39,7 @@ public class UserServiceImplIntegrationTest {
     @Test
     void updateUser() {
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
-        UserDto savedUserDto = userService.saveUser(userDto);
+        UserDto savedUserDto = userService.createUser(userDto);
 
         Integer userId = savedUserDto.getId();
         UserDto userDtoToUpdate = makeUserDto("Up Date", "update@email.com");
@@ -57,7 +57,7 @@ public class UserServiceImplIntegrationTest {
     @Test
     void updateUserName() {
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
-        UserDto savedUserDto = userService.saveUser(userDto);
+        UserDto savedUserDto = userService.createUser(userDto);
 
         Integer userId = savedUserDto.getId();
         UserDto userDtoToUpdate = makeUserDtoByName("Up Date");
@@ -77,7 +77,7 @@ public class UserServiceImplIntegrationTest {
     @Test
     void updateUser_whenIdDoesntExist_thenThrowNotFoundException() {
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
-        UserDto savedUserDto = userService.saveUser(userDto);
+        UserDto savedUserDto = userService.createUser(userDto);
 
         Integer userId = 100;
         UserDto userDtoToUpdate = makeUserDto("Up Date", "update@email.com");

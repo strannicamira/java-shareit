@@ -25,7 +25,7 @@ public class UserServiceImplUnitTest {
     private final UserRepository mockUserRepository;
 
     @Test
-    void saveUser() {
+    void createUser() {
         UserService userService = new UserServiceImpl(mockUserRepository);
         // given
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
@@ -39,7 +39,7 @@ public class UserServiceImplUnitTest {
 
 
         // then
-        UserDto savedUserDto = userService.saveUser(userDto);
+        UserDto savedUserDto = userService.createUser(userDto);
 
 
         assertThat(savedUserDto.getId(), equalTo(expectedUserDto.getId()));

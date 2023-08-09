@@ -22,11 +22,11 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService {
 
-    private final ItemRepository repository;
+    private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingService bookingService;
     private final CommentRepository commentRepository;
-    private final ItemRequestService requestService;
+//    private final ItemRequestService requestService;
     private final ItemRequestRepository requestRepository;
 
     @Override
@@ -35,7 +35,7 @@ public class ItemServiceImpl implements ItemService {
         log.info("Search item by item id {}", itemId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
-        Item item = repository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
         return ItemMapper.mapToItemDto(item);
     }
 
@@ -46,7 +46,7 @@ public class ItemServiceImpl implements ItemService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        Item item = repository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
 
         LastBooking lastBooking = null;
         NextBooking nextBooking = null;
@@ -68,7 +68,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemDto> getUserItems(Integer userId) {
         log.info("Search all items by user id {}", userId);
-        List<Item> items = repository.findByOwnerId(userId);
+        List<Item> items = itemRepository.findByOwnerId(userId);
 
         return ItemMapper.mapToItemDto(items);
     }
@@ -76,7 +76,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemWithBookingDto> getUserItemsWithBooking(Integer userId) {
         log.info("Search all items by user id {}", userId);
-        List<Item> items = repository.findByOwnerId(userId);
+        List<Item> items = itemRepository.findByOwnerId(userId);
         List<ItemWithBookingDto> dtos = new ArrayList<>();
         for (Item item : items) {
             ItemWithBookingDto itemWithBookingDto = getItemWithBooking(userId, item.getId());
@@ -95,7 +95,7 @@ public class ItemServiceImpl implements ItemService {
             BooleanExpression byTextInName = QItem.item.name.toLowerCase().contains(text.toLowerCase());
             BooleanExpression byTextInDescr = QItem.item.description.toLowerCase().contains(text.toLowerCase());
 
-            foundItems = repository.findAll(byAvailable.and(byTextInName.or(byTextInDescr)));
+            foundItems = itemRepository.findAll(byAvailable.and(byTextInName.or(byTextInDescr)));
         }
         return ItemMapper.mapToItemDto(foundItems);
     }
@@ -108,31 +108,27 @@ public class ItemServiceImpl implements ItemService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
-//        Item item = new Item();
         Item item = ItemMapper.mapToItem(itemDto, user);
-//        item.setOwner(user);
 
         Integer requestId = itemDto.getRequestId();
         if (requestId != null) {
-//        ItemRequestDto itemRequestDto = requestService.get(userId, requestId);
-//        ItemRequest itemRequest = ItemRequestMapper.mapToItemRequest(itemRequestDto, user);
             ItemRequest itemRequest1 = requestRepository.findById(requestId).orElseThrow(() -> new NotFoundException("Item request not found"));
             item.setItemRequest(itemRequest1);
         }
 
-        item = repository.save(item);
+        item = itemRepository.save(item);
         return ItemMapper.mapToItemDto(item);
     }
 
     @Override
     @Transactional
-    public CommentItemDto addNewItemComment(Integer userId, Integer itemId, Comment comment) {
+    public CommentItemDto createItemComment(Integer userId, Integer itemId, Comment comment) {
         log.info("Create comment by user id {} for item id {}", userId, itemId);
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        Item item = repository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
 
         List<BookingOutDto> pastBookingOutDtos = bookingService.getItemsBookingsByUser(itemId, userId, BookingState.PAST.getName());
 
@@ -159,7 +155,7 @@ public class ItemServiceImpl implements ItemService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        Item item = repository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
 
         if (!item.getOwner().getId().equals(user.getId())) {
             throw new IllegalStateException("Пользователь не владелец");
@@ -171,18 +167,7 @@ public class ItemServiceImpl implements ItemService {
         item.setAvailable(itemDto.getAvailable() == null ? item.getAvailable() : itemDto.getAvailable());
         item.setOwner(user);
 
-////        Integer requestId = itemDto.getRequestId();
-//        if (requestId != null) {
-////        ItemRequestDto itemRequestDto = requestService.get(userId, requestId);
-////        ItemRequest itemRequest = ItemRequestMapper.mapToItemRequest(itemRequestDto, user);
-//            ItemRequest itemRequest1 = requestRepository.findById(requestId).orElseThrow(() -> new NotFoundException("Item request not found"));
-////            item.setItemRequest(itemRequest1);
-//
-//        }
-////        item.setItemRequest(itemDto.getRequestId() == null ? item.getItemRequest() : itemRequest1);
-
-
-        Item itemSaved = repository.save(item);
+        Item itemSaved = itemRepository.save(item);
         return ItemMapper.mapToItemDto(itemSaved);
     }
 
@@ -190,6 +175,6 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public void deleteItem(Integer userId, Integer itemId) {
         log.info("Delete item by user id {} by item id {}", userId, itemId);
-        repository.deleteByOwnerIdAndId(userId, itemId);
+        itemRepository.deleteByOwnerIdAndId(userId, itemId);
     }
 }

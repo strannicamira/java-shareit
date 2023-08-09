@@ -25,7 +25,7 @@ public class UserController {
 
     @PostMapping
     public UserDto create(@Valid @RequestBody UserDto userDto) {
-        return userService.saveUser(userDto);
+        return userService.createUser(userDto);
     }
 
     @PatchMapping(value = "/{id}")

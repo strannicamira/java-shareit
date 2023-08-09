@@ -23,5 +23,5 @@ public interface ItemService {
 
     List<ItemWithBookingDto> getUserItemsWithBooking(Integer userId);
 
-    CommentItemDto addNewItemComment(Integer userId, Integer itemId, Comment comment);
+    CommentItemDto createItemComment(Integer userId, Integer itemId, Comment comment);
 }
