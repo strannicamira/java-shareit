@@ -17,27 +17,27 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping(value = "/{itemId}")
-    public ItemWithBookingDto get(@RequestHeader("X-Sharer-User-Id") Integer userId, @PathVariable Integer itemId) { // TODO: Check userId?
+    public ItemWithBookingDto getItemWithBooking(@RequestHeader("X-Sharer-User-Id") Integer userId, @PathVariable Integer itemId) { // TODO: Check userId?
         return itemService.getItemWithBooking(userId, itemId);
     }
 
     @GetMapping()
-    public List<ItemWithBookingDto> get(@RequestHeader("X-Sharer-User-Id") Integer userId) {
+    public List<ItemWithBookingDto> getUserItemsWithBooking(@RequestHeader("X-Sharer-User-Id") Integer userId) {
         return itemService.getUserItemsWithBooking(userId);
     }
 
     @GetMapping(value = "/search")
-    public List<ItemDto> get(@RequestHeader("X-Sharer-User-Id") Integer userId, @RequestParam(name = "text", required = false) String text) {
+    public List<ItemDto> getUserItems(@RequestHeader("X-Sharer-User-Id") Integer userId, @RequestParam(name = "text", required = false) String text) {
         return itemService.getUserItems(userId, text);
     }
 
     @PostMapping
-    public ItemDto add(@RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody ItemDto itemDto) {
+    public ItemDto createItem(@RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody ItemDto itemDto) {
         return itemService.createItem(userId, itemDto);
     }
 
     @PatchMapping(value = "/{id}")//TODO:?
-    public ItemDto update(@RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody ItemDtoForUpdate itemDto, @PathVariable("id") Integer itemId) {
+    public ItemDto updateItem(@RequestHeader("X-Sharer-User-Id") Integer userId, @Valid @RequestBody ItemDtoForUpdate itemDto, @PathVariable("id") Integer itemId) {
         return itemService.updateItem(userId, itemDto, itemId);
     }
 
@@ -48,7 +48,7 @@ public class ItemController {
 
 
     @PostMapping("/{itemId}/comment")
-    public CommentItemDto add(@RequestHeader("X-Sharer-User-Id") Integer userId,
+    public CommentItemDto createItemComment(@RequestHeader("X-Sharer-User-Id") Integer userId,
                               @PathVariable(name = "itemId") Integer itemId,
                               @Valid @RequestBody Comment comment) {
         return itemService.createItemComment(userId, itemId, comment);

@@ -101,7 +101,7 @@ class UserControllerTest {
 
     @Order(3)
     @Test
-    public void updateEmployeeAPI() throws Exception {
+    public void update() throws Exception {
         when(userService.updateUser(anyInt(),any()))
                 .thenReturn(updatedUserDto);
 
@@ -119,7 +119,7 @@ class UserControllerTest {
     @Order(4)
     @Test
     void findById() throws Exception {
-        when(userService.getUser(1))
+        when(userService.getUser(anyInt()))
                 .thenReturn(createdUserDto);
 
         mvc.perform(MockMvcRequestBuilders
