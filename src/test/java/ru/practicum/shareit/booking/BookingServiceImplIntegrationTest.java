@@ -195,6 +195,20 @@ public class BookingServiceImplIntegrationTest {
 
     }
 
+    @Order(5)
+    @Test
+    void getUserItemsBookings() {
+        //TODO:
+        assertThat(true, equalTo(true));
+    }
+
+    @Order(6)
+    @Test
+    void getItemsBookingsByUser() {
+        //TODO:
+        assertThat(true, equalTo(true));
+    }
+
     @Order(100)
     @Test
     void deleteBooking() {
@@ -303,6 +317,7 @@ public class BookingServiceImplIntegrationTest {
 
         return new BookingData(booking, itemDtoCreated, itemOwnerUserDto1, userService.getUser(bookerId));
     }
+
     private UserDto makeUserDto(String name, String email) {
         UserDto dto = new UserDto();
         dto.setName(name);
