@@ -1,7 +1,11 @@
 package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,18 +17,25 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+@Slf4j
 @Transactional
 @SpringBootTest(
         properties = "db.name=shareittest",
         webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserServiceImplIntegrationTest {
 
     private final UserService userService;
     private final UserRepository repository;
 
+    private static int index = 0;
+
+    @Order(1)
     @Test
     void createUser() {
+        log.info("UserServiceImplIntegrationTest-" + index++ + "-createUser");
+
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
 
         UserDto createdUserDto = userService.createUser(userDto);
@@ -37,8 +48,11 @@ public class UserServiceImplIntegrationTest {
         assertThat(user.getEmail(), equalTo(userDto.getEmail()));
     }
 
+    @Order(2)
     @Test
     void updateUser() {
+        log.info("UserServiceImplIntegrationTest-" + index++ + "-updateUser");
+
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
         UserDto savedUserDto = userService.createUser(userDto);
 
@@ -55,8 +69,11 @@ public class UserServiceImplIntegrationTest {
     }
 
 
+    @Order(3)
     @Test
     void updateUserName() {
+        log.info("UserServiceImplIntegrationTest-" + index++ + "-updateUserName");
+
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
         UserDto savedUserDto = userService.createUser(userDto);
 
@@ -75,8 +92,11 @@ public class UserServiceImplIntegrationTest {
     //TODO: updateUserEmail
 
 
+    @Order(4)
     @Test
     void updateUser_whenIdDoesntExist_thenThrowNotFoundException() {
+        log.info("UserServiceImplIntegrationTest-" + index++ + "-updateUser_");
+
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
         UserDto savedUserDto = userService.createUser(userDto);
 

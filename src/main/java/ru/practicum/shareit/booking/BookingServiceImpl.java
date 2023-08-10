@@ -30,7 +30,7 @@ import static ru.practicum.shareit.util.Constants.SORT_BY_START_DESC;
 @Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
 
-    private final BookingRepository repository;
+    private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
 
@@ -66,7 +66,7 @@ public class BookingServiceImpl implements BookingService {
         bookingDto.setBookerId(userId);
         bookingDto.setStatus(BookingStatus.WAITING);
 
-        Booking booking = repository.save(BookingMapper.mapToBooking(bookingDto, item, booker));
+        Booking booking = bookingRepository.save(BookingMapper.mapToBooking(bookingDto, item, booker));
 
         return BookingOutMapper.mapToBookingOutDto(booking);
     }
@@ -79,7 +79,7 @@ public class BookingServiceImpl implements BookingService {
         User booker = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        Booking booking = repository.findById(bookingId)
+        Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
 
         if (!userId.equals(booking.getItem().getOwner().getId())) {
@@ -94,7 +94,7 @@ public class BookingServiceImpl implements BookingService {
 
         booking.setStatus(bookingStatus);
 
-        Booking bookingSaved = repository.save(booking);
+        Booking bookingSaved = bookingRepository.save(booking);
         return BookingOutMapper.mapToBookingOutDto(bookingSaved);
     }
 
@@ -106,7 +106,7 @@ public class BookingServiceImpl implements BookingService {
         User booker = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        Booking booking = repository.findById(bookingId)
+        Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
 
         if (!userId.equals(booking.getBooker().getId()) && !userId.equals(booking.getItem().getOwner().getId())) {
@@ -188,7 +188,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public void deleteBooking(Integer userId, Integer bookingId) {
         log.info("Delete booking by user id {} by booking id {}", userId, bookingId);
-        repository.deleteByBookerIdAndId(userId, bookingId);
+        bookingRepository.deleteByBookerIdAndId(userId, bookingId);
     }
 
 
@@ -224,7 +224,7 @@ public class BookingServiceImpl implements BookingService {
 
         byState = getBooleanExpression(bookingState);
 
-        Iterable<Booking> booking = repository.findAll(expression.and(byState), page);
+        Iterable<Booking> booking = bookingRepository.findAll(expression.and(byState), page);
         return booking;
     }
 
@@ -233,7 +233,7 @@ public class BookingServiceImpl implements BookingService {
 
         byState = getBooleanExpression(bookingState);
 
-        Iterable<Booking> booking = repository.findAll(expression.and(byState), sort);
+        Iterable<Booking> booking = bookingRepository.findAll(expression.and(byState), sort);
         return booking;
     }
 
