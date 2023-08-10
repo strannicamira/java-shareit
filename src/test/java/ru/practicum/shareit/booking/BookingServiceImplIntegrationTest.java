@@ -20,6 +20,8 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static ru.practicum.shareit.util.Constants.SORT_BY_START_DESC;
 
 @Slf4j
 @Transactional
@@ -55,6 +57,7 @@ public class BookingServiceImplIntegrationTest {
     @Order(1)
     @Test
     void createBooking() {
+        //TODO: refactor
         UserDto userDto1 = makeUserDto("One Doe", "one@email.com");
         UserDto savedUserDto1 = userService.createUser(userDto1);
         Integer userId1 = savedUserDto1.getId();//=1
@@ -91,6 +94,8 @@ public class BookingServiceImplIntegrationTest {
     @Order(2)
     @Test
     void updateBookingByApproving() {
+        //TODO: refactor
+
         UserDto userDto1 = makeUserDto("Three Doe", "three@email.com");
         UserDto savedUserDto1 = userService.createUser(userDto1);
         Integer userId1 = savedUserDto1.getId();//=3
@@ -120,7 +125,7 @@ public class BookingServiceImplIntegrationTest {
 
         Booking booking = bookingRepository.findById(updatedBookingOutDtoId).orElseThrow(() -> new NotFoundException("Booking not found by id " + updatedBookingOutDtoId));
 
-        assertThat(booking.getId(), notNullValue());
+        assertThat(booking.getId(), equalTo(updatedBookingOutDto.getId()));
         assertThat(booking.getStart(), equalTo(updatedBookingOutDto.getStart()));
         assertThat(booking.getEnd(), equalTo(updatedBookingOutDto.getEnd()));
         assertThat(booking.getItem().getId(), equalTo(updatedBookingOutDto.getItem().getId()));
@@ -140,11 +145,6 @@ public class BookingServiceImplIntegrationTest {
         Integer bookerId = bookingData.getBookingOwner().getId();
         Integer itemOwnerId = bookingData.getItemOwner().getId();
 
-        itemOwners.add(itemOwnerId);
-        bookingOwners.add(bookerId);
-        items.add(itemId);
-        bookings.add(bookingId);
-
         log.info("Get booking by id " + bookingId + " booked by user id " + bookerId +
                 " for item by " + itemId + " owned by user by id " + itemOwnerId);
         BookingOutDto gotBookingOutDto = bookingService.getBooking(bookerId, bookingId);
@@ -152,15 +152,50 @@ public class BookingServiceImplIntegrationTest {
 
         Booking booking = bookingRepository.findById(updatedBookingOutDtoId).orElseThrow(() -> new NotFoundException("Booking not found by id " + bookingId));
 
-        assertThat(booking.getId(), notNullValue());
-        assertThat(booking.getStart(), equalTo(gotBookingOutDto.getStart()));
-        assertThat(booking.getEnd(), equalTo(gotBookingOutDto.getEnd()));
-        assertThat(booking.getItem().getId(), equalTo(gotBookingOutDto.getItem().getId()));
-        assertThat(booking.getBooker().getId(), equalTo(gotBookingOutDto.getBooker().getId()));
-        assertThat(booking.getStatus(), equalTo(gotBookingOutDto.getStatus()));
+        assertThatBookingsEqual(gotBookingOutDto, booking);
+    }
+
+    private static void assertThatBookingsEqual(BookingOutDto gotBookingOutDto, Booking booking) {
+        assertAll(
+                () -> assertThat(booking.getId(), equalTo(gotBookingOutDto.getId())),
+                () -> assertThat(booking.getStart(), equalTo(gotBookingOutDto.getStart())),
+                () -> assertThat(booking.getEnd(), equalTo(gotBookingOutDto.getEnd())),
+                () -> assertThat(booking.getItem().getId(), equalTo(gotBookingOutDto.getItem().getId())),
+                () -> assertThat(booking.getBooker().getId(), equalTo(gotBookingOutDto.getBooker().getId())),
+                () -> assertThat(booking.getStatus(), equalTo(gotBookingOutDto.getStatus()))
+        );
     }
 
     @Order(4)
+    @Test
+    void getUserBookings() {
+
+        BookingData bookingData = makeBookingData();
+        Integer bookerId = bookingData.getBookingOwner().getId();
+        BookingData bookingData2 = makeBookingDataByBookerId(bookerId);
+
+        List<BookingOutDto> gotBookingOutDto = bookingService.getUserBookings(bookerId, BookingState.ALL.getName(), 1, 2);
+
+        for (BookingOutDto dto : gotBookingOutDto) {
+            log.info("Get booking by id " + dto.getId() + " booked by user id " + dto.getBooker().getId() +
+                    " for item by " + dto.getItem().getId());
+        }
+
+        List<Booking> bookings = bookingRepository.findAllByBookerId(bookerId, SORT_BY_START_DESC);
+
+        for (Booking booking : bookings) {
+            log.info("Get from repo booking by id " + booking.getId() + " booked by user id " + booking.getBooker().getId() +
+                    " for item by " + booking.getItem().getId());
+        }
+
+        assertThat(bookings.size(), equalTo(gotBookingOutDto.size()));
+        for (int i = 0; i < bookings.size(); i++) {
+            assertThatBookingsEqual(gotBookingOutDto.get(i), bookings.get(i));
+        }
+
+    }
+
+    @Order(100)
     @Test
     void deleteBooking() {
         log.info("Bookings size is " + bookings.size());
@@ -180,13 +215,50 @@ public class BookingServiceImplIntegrationTest {
     }
 
     private BookingData makeBookingData() {
-        UserDto userDto1 = makeUserDto("Three Doe", "three@email.com");
+        String itemOwnersName = "itemOwner" + itemOwners.size();
+        String bookingOwnerName = "bookingOwner" + bookingOwners.size();
+        String itemName = "item" + items.size();
+
+        UserDto userDto1 = makeUserDto(itemOwnersName, itemOwnersName + "@email.com");
         UserDto itemOwnerUserDto1 = userService.createUser(userDto1);
         Integer userId1 = itemOwnerUserDto1.getId();//=3
 
-        UserDto userDto2 = makeUserDto("Four Doe", "four@email.com");
+        UserDto userDto2 = makeUserDto(bookingOwnerName, bookingOwnerName + "@email.com");
         UserDto bookingOwnerUserDto2 = userService.createUser(userDto2);
         Integer userId2 = bookingOwnerUserDto2.getId();//=4
+
+        ItemDto itemDto = makeItemDto(itemName, itemName + "...");
+        ItemDto itemDtoCreated = itemService.createItem(userId1, itemDto);
+        Integer itemId = itemDtoCreated.getId();//=2
+
+        LocalDateTime now = LocalDateTime.now();
+        BookingDto bookingDto = makeBookingDto(now.plusDays(1), now.plusDays(2), itemId);
+
+        log.info("Booking created by user id " + userId2 + " for item by " + itemId + " owned by user by id " + userId1);
+        BookingOutDto booking = bookingService.createBooking(userId2, bookingDto);
+        Integer bookingId = booking.getId();//=2
+
+        addToLists(userId1, userId2, itemId, bookingId);
+
+        return new BookingData(booking, itemDtoCreated, itemOwnerUserDto1, bookingOwnerUserDto2);
+    }
+
+    private static void addToLists(Integer userId1, Integer userId2, Integer itemId, Integer bookingId) {
+        //TODO: move into makeBookingData after each object creating
+        itemOwners.add(userId1);
+        bookingOwners.add(userId2);
+        items.add(itemId);
+        bookings.add(bookingId);
+    }
+
+    private BookingData makeBookingDataByUseId(Integer userId) {
+        UserDto userDto1 = makeUserDto("Doe" + userId, "user" + userId + "@email.com");
+        UserDto itemOwnerUserDto1 = userService.createUser(userDto1);
+        Integer userId1 = itemOwnerUserDto1.getId();//=3
+
+//        UserDto userDto2 = makeUserDto("Four Doe", "four@email.com");
+//        UserDto bookingOwnerUserDto2 = userService.createUser(userDto2);
+//        Integer userId2 = bookingOwnerUserDto2.getId();//=4
 
         ItemDto itemDto = makeItemDto("Twothing", "Two thing");
         ItemDto itemDtoCreated = itemService.createItem(userId1, itemDto);
@@ -195,14 +267,42 @@ public class BookingServiceImplIntegrationTest {
         LocalDateTime now = LocalDateTime.now();
         BookingDto bookingDto = makeBookingDto(now.plusDays(1), now.plusDays(2), itemId);
 
-        log.info("Booking created by user id " + userId2 + " for item by " + itemId + " owned by user by id " + userId1);
-        BookingOutDto createdBookingOutDto = bookingService.createBooking(userId2, bookingDto);
+        log.info("Booking created by user id " + userId + " for item by " + itemId + " owned by user by id " + userId1);
+        BookingOutDto createdBookingOutDto = bookingService.createBooking(userId, bookingDto);
         Integer createdBookingOutDtoId = createdBookingOutDto.getId();//=2
 
-        return new BookingData(createdBookingOutDto, itemDtoCreated, itemOwnerUserDto1, bookingOwnerUserDto2);
+        return new BookingData(createdBookingOutDto, itemDtoCreated, itemOwnerUserDto1, userService.getUser(userId));
     }
 
 
+    private BookingData makeBookingDataByBookerId(Integer bookerId) {
+        String itemOwnersName = "itemOwner" + itemOwners.size();
+        String bookingOwnerName = "bookingOwner" + bookingOwners.size();
+        String itemName = "item" + items.size();
+
+        UserDto userDto1 = makeUserDto(itemOwnersName, itemOwnersName + "@email.com");
+        UserDto itemOwnerUserDto1 = userService.createUser(userDto1);
+        Integer userId1 = itemOwnerUserDto1.getId();//=3
+
+//        UserDto userDto2 = makeUserDto(bookingOwnerName, bookingOwnerName + "@email.com");
+//        UserDto bookingOwnerUserDto2 = userService.createUser(userDto2);
+//        Integer userId2 = bookingOwnerUserDto2.getId();//=4
+
+        ItemDto itemDto = makeItemDto(itemName, itemName + "...");
+        ItemDto itemDtoCreated = itemService.createItem(userId1, itemDto);
+        Integer itemId = itemDtoCreated.getId();//=2
+
+        LocalDateTime now = LocalDateTime.now();
+        BookingDto bookingDto = makeBookingDto(now.plusDays(1), now.plusDays(2), itemId);
+
+        log.info("Booking created by user id " + bookerId + " for item by " + itemId + " owned by user by id " + userId1);
+        BookingOutDto booking = bookingService.createBooking(bookerId, bookingDto);
+        Integer bookingId = booking.getId();//=2
+
+        addToLists(userId1, bookerId, itemId, bookingId);
+
+        return new BookingData(booking, itemDtoCreated, itemOwnerUserDto1, userService.getUser(bookerId));
+    }
     private UserDto makeUserDto(String name, String email) {
         UserDto dto = new UserDto();
         dto.setName(name);

@@ -1,7 +1,9 @@
 package ru.practicum.shareit.util;
 
+import lombok.experimental.UtilityClass;
 import org.springframework.data.domain.Sort;
 
+@UtilityClass
 public class Constants {
     public static final String TIME_PATTERN = "YYYY-MM-DDTHH:mm:ss";
     public static final Sort SORT_BY_ID_ASC = Sort.by(Sort.Direction.ASC, "id");
