@@ -26,7 +26,7 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingService bookingService;
     private final CommentRepository commentRepository;
-//    private final ItemRequestService requestService;
+    //    private final ItemRequestService requestService;
     private final ItemRequestRepository requestRepository;
 
     @Override
@@ -59,7 +59,13 @@ public class ItemServiceImpl implements ItemService {
         }
 
         List<Comment> comments = commentRepository.findAllByItemId(itemId);
+        for (Comment comment : comments) {
+            log.info("getItemWithBooking:comment.getCreated():" + comment.getCreated());
+        }
         List<CommentItemDto> commentItemDtos = CommentMapper.mapToCommentItemDto(comments);
+        for (CommentItemDto dto : commentItemDtos) {
+            log.info("getItemWithBooking:dto.getCreated():" + dto.getCreated());
+        }
         itemWithBookingDto = ItemWithBookingMapper.mapToItemWithBookingDto(item, lastBooking, nextBooking, commentItemDtos);
 
         return itemWithBookingDto;

@@ -1,19 +1,28 @@
 package ru.practicum.shareit.item;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.practicum.shareit.booking.LastBooking;
 import ru.practicum.shareit.booking.NextBooking;
+import ru.practicum.shareit.comment.Comment;
+import ru.practicum.shareit.comment.CommentItemDto;
 
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -25,7 +34,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.practicum.shareit.util.Constants.TIME_PATTERN;
 
+@Slf4j
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ItemControllerTest {
@@ -35,20 +46,35 @@ class ItemControllerTest {
     @InjectMocks
     private ItemController controller;
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    private  ObjectMapper objectMapper = new ObjectMapper();
 
-    private MockMvc mvc;
+    private MockMvc mockMvc;
 
     private ItemDto createdItemDto;
     private ItemDto updatedItemDto;
     private ItemDto itemDtoToCreate;
     private ItemDtoForUpdate itemDtoToUpdate;
     private ItemWithBookingDto itemWithBookingDto;
+    private Comment comment;
+    private CommentItemDto createdComment;
 
     @BeforeEach
     void setUp() {
-        mvc = MockMvcBuilders
+        mockMvc = MockMvcBuilders
                 .standaloneSetup(controller)
+                .build();
+
+
+        ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().build();
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+
+        ObjectMapper mapper = new ObjectMapper();
+        SimpleDateFormat df = new SimpleDateFormat(TIME_PATTERN);
+        mapper.setDateFormat(df);
+
+//        this.boardProcessorController = new MyController();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
                 .build();
 
         itemDtoToCreate = makeItemDto("Item", "Item...");
@@ -56,7 +82,10 @@ class ItemControllerTest {
         itemDtoToUpdate = new ItemDtoForUpdate(1, "UpdateItem", "UpdateItem...", Boolean.TRUE);
         updatedItemDto = new ItemDto(1, "UpdateItem", "UpdateItem...", Boolean.TRUE, null);
         itemWithBookingDto = makeItemWithBookingDto(createdItemDto);
+        comment = makeComment("Comment");
+        createdComment = makeCommentItemDto(1, comment, "User Name");
     }
+
 
     @Order(1)
     @Test
@@ -64,8 +93,8 @@ class ItemControllerTest {
         when(itemService.createItem(anyInt(), any()))
                 .thenReturn(createdItemDto);
 
-        mvc.perform(post("/items")
-                        .content(mapper.writeValueAsString(itemDtoToCreate))
+        mockMvc.perform(post("/items")
+                        .content(objectMapper.writeValueAsString(itemDtoToCreate))
                         .header("X-Sharer-User-Id", "1")
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -84,7 +113,7 @@ class ItemControllerTest {
         when(itemService.getUserItemsWithBooking(anyInt()))
                 .thenReturn(List.of(itemWithBookingDto));
 
-        mvc.perform(get("/items")
+        mockMvc.perform(get("/items")
                         .header("X-Sharer-User-Id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
@@ -104,9 +133,9 @@ class ItemControllerTest {
         when(itemService.updateItem(anyInt(), any(), anyInt()))
                 .thenReturn(updatedItemDto);
 
-        mvc.perform(MockMvcRequestBuilders
+        mockMvc.perform(MockMvcRequestBuilders
                         .patch("/items/{id}", 1)
-                        .content(mapper.writeValueAsString(itemDtoToUpdate))
+                        .content(objectMapper.writeValueAsString(itemDtoToUpdate))
                         .header("X-Sharer-User-Id", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -118,28 +147,28 @@ class ItemControllerTest {
     }
 
 
-        @Order(4)
-        @Test
-        void findById() throws Exception {
-            when(itemService.getItemWithBooking(anyInt(),anyInt()))
-                    .thenReturn(itemWithBookingDto);
+    @Order(4)
+    @Test
+    void findById() throws Exception {
+        when(itemService.getItemWithBooking(anyInt(), anyInt()))
+                .thenReturn(itemWithBookingDto);
 
-            mvc.perform(MockMvcRequestBuilders
-                            .get("/items/{id}", 1)
-                            .header("X-Sharer-User-Id", "1")
-                            .characterEncoding(StandardCharsets.UTF_8)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id", is(itemWithBookingDto.getId()), Integer.class))
-                    .andExpect(jsonPath("$.name", is(itemWithBookingDto.getName())))
-                    .andExpect(jsonPath("$.description", is(itemWithBookingDto.getDescription())))
-                    .andExpect(jsonPath("$.available", is(itemWithBookingDto.getAvailable())))
-                    .andExpect(jsonPath("$.lastBooking.id", is(itemWithBookingDto.getLastBooking().getId())))
-                    .andExpect(jsonPath("$.lastBooking.bookerId", is(itemWithBookingDto.getLastBooking().getBookerId())))
-                    .andExpect(jsonPath("$.nextBooking.id", is(itemWithBookingDto.getNextBooking().getId())))
-                    .andExpect(jsonPath("$.nextBooking.bookerId", is(itemWithBookingDto.getNextBooking().getBookerId())));
-        }
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/items/{id}", 1)
+                        .header("X-Sharer-User-Id", "1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(itemWithBookingDto.getId()), Integer.class))
+                .andExpect(jsonPath("$.name", is(itemWithBookingDto.getName())))
+                .andExpect(jsonPath("$.description", is(itemWithBookingDto.getDescription())))
+                .andExpect(jsonPath("$.available", is(itemWithBookingDto.getAvailable())))
+                .andExpect(jsonPath("$.lastBooking.id", is(itemWithBookingDto.getLastBooking().getId())))
+                .andExpect(jsonPath("$.lastBooking.bookerId", is(itemWithBookingDto.getLastBooking().getBookerId())))
+                .andExpect(jsonPath("$.nextBooking.id", is(itemWithBookingDto.getNextBooking().getId())))
+                .andExpect(jsonPath("$.nextBooking.bookerId", is(itemWithBookingDto.getNextBooking().getBookerId())));
+    }
 
     @Order(5)
     @Test
@@ -153,14 +182,32 @@ class ItemControllerTest {
     @Test
     public void createItemComment() throws Exception {
 
-        //TODO:
+        when(itemService.createItemComment(anyInt(), anyInt(), any()))
+                .thenReturn(createdComment);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .post("/items/{itemId}/comment", 1)
+                        .content(objectMapper.writeValueAsString(comment))
+                        .header("X-Sharer-User-Id", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(createdComment.getId()), Integer.class))
+                .andExpect(jsonPath("$.text", is(createdComment.getText())))
+                .andExpect(jsonPath("$.authorName", is(createdComment.getAuthorName())))
+                .andExpect(jsonPath("$.created".toString(),
+                        is(createdComment.getCreated()
+                                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+//                                .format(DateTimeFormatter.ofPattern(TIME_PATTERN))
+                                .toString())));
+
 
     }
 
     @Order(7)
     @Test
     public void deleteItemById() throws Exception {
-        mvc.perform(MockMvcRequestBuilders.delete("/items/{itemId}", 1)
+        mockMvc.perform(MockMvcRequestBuilders.delete("/items/{itemId}", 1)
                         .header("X-Sharer-User-Id", "1"))
                 .andExpect(status().isOk());
     }
@@ -180,8 +227,26 @@ class ItemControllerTest {
         dto.setName(itemDto.getName());
         dto.setDescription(itemDto.getDescription());
         dto.setAvailable(itemDto.getAvailable());
-        dto.setLastBooking(new LastBooking(1,1));
-        dto.setNextBooking(new NextBooking(2,2));
+        dto.setLastBooking(new LastBooking(1, 1));
+        dto.setNextBooking(new NextBooking(2, 2));
+        return dto;
+    }
+
+    private Comment makeComment(String text) {
+        Comment comment = new Comment();
+        comment.setText(text);
+        return comment;
+    }
+
+    private CommentItemDto makeCommentItemDto(Integer id, Comment comment, String authorName) {
+        CommentItemDto dto = new CommentItemDto();
+        dto.setId(id);
+        dto.setText(comment.getText());
+        dto.setAuthorName(authorName);
+        dto.setCreated(LocalDateTime.now());
+//        dto.setCreated(LocalDateTime.now().plusDays(3).truncatedTo(ChronoUnit.NANOS));
+
+//        log.info("getCreated = " + dto.getCreated().toString());
         return dto;
     }
 }
