@@ -1,11 +1,10 @@
 package ru.practicum.shareit.booking;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 //@ToString
-@JsonFormat(shape = JsonFormat.Shape.OBJECT)
+//@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum BookingStatus {
     WAITING(0, "WAITING"),
     APPROVED(1, "APPROVED"),
@@ -20,6 +19,7 @@ public enum BookingStatus {
         this.name = name;
     }
 
+    @JsonCreator
     public String getName() {
         return name;
     }
@@ -28,7 +28,7 @@ public enum BookingStatus {
         return id;
     }
 
-    @JsonCreator
+//    @JsonCreator
     public static BookingStatus forValues(@JsonProperty("id") Integer id) {
         for (BookingStatus status : BookingStatus.values()) {
             if (status.id.equals(id)) {
@@ -36,5 +36,21 @@ public enum BookingStatus {
             }
         }
         return null;
+    }
+
+//    @JsonCreator//(mode = JsonCreator.Mode.DEFAULT)
+    public static BookingStatus forValues(@JsonProperty("name") String name) {
+        for (BookingStatus status : BookingStatus.values()) {
+            if (status.name.equals(name)) {
+                return status;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    @JsonCreator
+    public String toString() {
+        return getName();
     }
 }
