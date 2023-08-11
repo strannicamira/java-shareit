@@ -12,10 +12,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.*;
-import ru.practicum.shareit.user.UserDto;
-import ru.practicum.shareit.user.UserRepository;
-import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.item.ItemDto;
+import ru.practicum.shareit.item.ItemDtoForUpdate;
+import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.item.ItemService;
+import ru.practicum.shareit.user.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +62,19 @@ public class ItemRequestServiceImplIntegrationTest {
         assertItemRequests(requsterId, itemRequestDto, itemRequest);
     }
 
+    @Order(5)
+    @Test
+    void create_whenUserIdDoesNotExist_thenThrowIllegalStateException() {
+
+        ItemRequestData itemRequestData = makeItemRequestData();
+        ItemRequestDto itemRequestDto = itemRequestData.getItemRequestDto();
+        UserDto userDto = itemRequestData.getRequestOwner();
+        User user = UserMapper.mapToUser(userDto);
+        ItemRequest itemRequest = ItemRequestMapper.mapToItemRequest(itemRequestDto, user);
+
+        assertThrows(NotFoundException.class, () -> itemRequestService.create(100, itemRequest));
+    }
+
     @Order(2)
     @Test
     void getListOfItemRequestsByUserId() {
@@ -77,6 +91,18 @@ public class ItemRequestServiceImplIntegrationTest {
         }
     }
 
+    @Order(5)
+    @Test
+    void getListOfItemRequestsByUserId_whenUserIdDoesNotExist_thenThrowIllegalStateException() {
+
+//        ItemRequestData itemRequestData = makeItemRequestData();
+//        Integer requsterId = itemRequestData.getRequestOwner().getId();
+//        Integer itemOwnerId = itemRequestData.getItemOwner().getId();
+
+
+        assertThrows(NotFoundException.class, () -> itemRequestService.get(100));
+    }
+
     @Order(3)
     @Test
     void getItemRequestById() {
@@ -89,6 +115,19 @@ public class ItemRequestServiceImplIntegrationTest {
         ItemRequest itemRequest = itemRequestRepository.findById(requestId).orElseThrow(() -> new NotFoundException("Item not found"));
 
         assertItemRequests(requsterId, itemRequestDto, itemRequest);
+    }
+
+
+    @Order(5)
+    @Test
+    void getItemRequestById_whenUserIdDoesNotExist_thenThrowIllegalStateException() {
+
+//        ItemRequestData itemRequestData = makeItemRequestData();
+//        Integer requsterId = itemRequestData.getRequestOwner().getId();
+//        Integer itemOwnerId = itemRequestData.getItemOwner().getId();
+
+
+        assertThrows(NotFoundException.class, () -> itemRequestService.get(100, 100));
     }
 
     @Order(4)
@@ -109,6 +148,18 @@ public class ItemRequestServiceImplIntegrationTest {
         for (int i = 0; i < itemRequests.size(); i++) {
             assertItemRequests(requsterId, itemRequestDtos.get(i), itemRequests.get(i));
         }
+    }
+
+    @Order(5)
+    @Test
+    void getAllListOfItemRequestsByUserId_whenUserIdDoesNotExist_thenThrowIllegalStateException() {
+
+//        ItemRequestData itemRequestData = makeItemRequestData();
+//        Integer requsterId = itemRequestData.getRequestOwner().getId();
+//        Integer itemOwnerId = itemRequestData.getItemOwner().getId();
+
+
+        assertThrows(NotFoundException.class, () -> itemRequestService.get(100, -10, -10));
     }
 
 
