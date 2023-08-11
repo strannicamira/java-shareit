@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,12 +17,14 @@ import ru.practicum.shareit.user.UserDto;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static ru.practicum.shareit.util.Constants.SORT_BY_REQUEST_CREATED_DESC;
 
 @Slf4j
@@ -45,6 +48,7 @@ public class ItemRequestServiceImplIntegrationTest {
         return itemRequest;
     }
 
+    @Order(1)
     @Test
     void create() {
         ItemRequestData itemRequestData = makeSimpleItemRequestData();
@@ -57,6 +61,7 @@ public class ItemRequestServiceImplIntegrationTest {
         assertItemRequests(requsterId, itemRequestDto, itemRequest);
     }
 
+    @Order(2)
     @Test
     void getListOfItemRequestsByUserId() {
         ItemRequestData itemRequestData = makeSimpleItemRequestData();
@@ -72,6 +77,7 @@ public class ItemRequestServiceImplIntegrationTest {
         }
     }
 
+    @Order(3)
     @Test
     void getItemRequestById() {
         ItemRequestData itemRequestData = makeSimpleItemRequestData();
@@ -85,6 +91,7 @@ public class ItemRequestServiceImplIntegrationTest {
         assertItemRequests(requsterId, itemRequestDto, itemRequest);
     }
 
+    @Order(4)
     @Test
     void getAllListOfItemRequestsByUserId() {
         ItemRequestData itemRequestData = makeItemRequestData();
@@ -102,6 +109,32 @@ public class ItemRequestServiceImplIntegrationTest {
         for (int i = 0; i < itemRequests.size(); i++) {
             assertItemRequests(requsterId, itemRequestDtos.get(i), itemRequests.get(i));
         }
+    }
+
+
+    @Order(5)
+    @Test
+    void getAllListOfItemRequestsByUserId_whenFromIsNegative_thenThrowIllegalStateException() {
+
+        ItemRequestData itemRequestData = makeItemRequestData();
+        Integer requsterId = itemRequestData.getRequestOwner().getId();
+        Integer itemOwnerId = itemRequestData.getItemOwner().getId();
+
+        assertThrows(IllegalStateException.class, () -> itemRequestService.get(itemOwnerId, -10, 10));
+    }
+
+    @Order(6)
+    @Test
+    void getAllListOfItemRequestsByUserId_whenUserIdIsRequsterId_thenReturnEmptyList() {
+        ItemRequestData itemRequestData = makeItemRequestData();
+        Integer requsterId = itemRequestData.getRequestOwner().getId();
+
+        Integer from = 0;
+        Integer size = 20;
+        List<ItemRequestDto> itemRequestDtos = itemRequestService.get(requsterId, from, size);
+
+        assertThat(new ArrayList<>(), equalTo(itemRequestDtos));
+
     }
 
 
