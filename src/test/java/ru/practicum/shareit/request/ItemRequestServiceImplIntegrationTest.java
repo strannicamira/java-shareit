@@ -26,6 +26,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static ru.practicum.shareit.util.Constants.MAGIC_NUMBER;
 import static ru.practicum.shareit.util.Constants.SORT_BY_REQUEST_CREATED_DESC;
 
 @Slf4j
@@ -72,7 +73,7 @@ public class ItemRequestServiceImplIntegrationTest {
         User user = UserMapper.mapToUser(userDto);
         ItemRequest itemRequest = ItemRequestMapper.mapToItemRequest(itemRequestDto, user);
 
-        assertThrows(NotFoundException.class, () -> itemRequestService.create(100, itemRequest));
+        assertThrows(NotFoundException.class, () -> itemRequestService.create(MAGIC_NUMBER, itemRequest));
     }
 
     @Order(3)
@@ -100,7 +101,7 @@ public class ItemRequestServiceImplIntegrationTest {
 //        Integer itemOwnerId = itemRequestData.getItemOwner().getId();
 
 
-        assertThrows(NotFoundException.class, () -> itemRequestService.get(100));
+        assertThrows(NotFoundException.class, () -> itemRequestService.get(MAGIC_NUMBER));
     }
 
     @Order(5)
@@ -127,7 +128,7 @@ public class ItemRequestServiceImplIntegrationTest {
 //        Integer itemOwnerId = itemRequestData.getItemOwner().getId();
 
 
-        assertThrows(NotFoundException.class, () -> itemRequestService.get(100, 100));
+        assertThrows(NotFoundException.class, () -> itemRequestService.get(MAGIC_NUMBER, MAGIC_NUMBER));
     }
 
 
@@ -140,7 +141,7 @@ public class ItemRequestServiceImplIntegrationTest {
         Integer itemOwnerId = itemRequestData.getItemOwner().getId();
 
 
-        assertThrows(NotFoundException.class, () -> itemRequestService.get(requsterId, 100));
+        assertThrows(NotFoundException.class, () -> itemRequestService.get(requsterId, MAGIC_NUMBER));
     }
 
     @Order(8)
@@ -172,7 +173,7 @@ public class ItemRequestServiceImplIntegrationTest {
 //        Integer itemOwnerId = itemRequestData.getItemOwner().getId();
 
 
-        assertThrows(NotFoundException.class, () -> itemRequestService.get(100, -10, -10));
+        assertThrows(NotFoundException.class, () -> itemRequestService.get(MAGIC_NUMBER, -10, -10));
     }
 
 

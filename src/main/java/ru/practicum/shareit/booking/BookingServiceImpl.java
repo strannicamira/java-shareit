@@ -40,7 +40,7 @@ public class BookingServiceImpl implements BookingService {
         log.info("Create booking by booker id {}", userId);
 
         User booker = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User is not found"));
 
 
         Item item = itemRepository.findById(bookingDto.getItemId())
@@ -161,7 +161,7 @@ public class BookingServiceImpl implements BookingService {
 
 
     @Override
-    public List<BookingOutDto> getUserItemsBookings(Integer userId, String state, Integer from, Integer size) {
+    public List<BookingOutDto> getItemsBookings(Integer userId, String state, Integer from, Integer size) {
         log.info("Search all bookings by owner user id {}", userId);
         BooleanExpression byItem = QBooking.booking.item.owner.id.eq(userId);
         Pageable page = getPage(from, size);

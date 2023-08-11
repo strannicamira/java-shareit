@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,8 +8,13 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.*;
+import ru.practicum.shareit.exception.NotOwnerException;
+import ru.practicum.shareit.item.ItemDto;
+import ru.practicum.shareit.item.ItemDtoForUpdate;
+import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.item.ItemService;
 import ru.practicum.shareit.user.UserDto;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.UserService;
@@ -21,6 +27,8 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static ru.practicum.shareit.util.Constants.MAGIC_NUMBER;
 import static ru.practicum.shareit.util.Constants.SORT_BY_START_DESC;
 
 @Slf4j
@@ -68,7 +76,7 @@ public class BookingServiceImplIntegrationTest {
         Integer userId2 = savedUserDto2.getId();//=2
         bookingOwners.add(userId2);
 
-        ItemDto itemDto = makeItemDto("Onething", "One thing");
+        ItemDto itemDto = makeAvailableItemDto("Onething", "One thing");
         ItemDto itemDtoCreated = itemService.createItem(userId1, itemDto);
         Integer itemId = itemDtoCreated.getId();//1
         items.add(itemId);
@@ -91,6 +99,170 @@ public class BookingServiceImplIntegrationTest {
         assertThat(booking.getStatus(), equalTo(BookingStatus.WAITING));
     }
 
+
+    @Order(10)
+    @Test
+    void createBooking_viaBookingData() {
+        BookingData bookingData = makeBookingData();
+        BookingOutDto bookingOutDto = bookingData.bookingOutDto;
+        Integer bookingId = bookingData.getBookingOutDto().getId();
+
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NotFoundException("Booking not found by id " + bookingId));
+
+        assertThatBookingsEqual(bookingOutDto, booking);
+    }
+
+
+
+    @Order(11)
+    @Test
+    void createBooking_viaBookingData_whenBookerIsNotFound_thenThrowNotFoundException() {
+        String itemOwnersName = "itemOwner" + itemOwners.size();
+        String bookingOwnerName = "bookingOwner" + bookingOwners.size();
+        String itemName = "item" + items.size();
+
+        UserDto userDto1 = makeUserDto(itemOwnersName, itemOwnersName + "@email.com");
+        UserDto itemOwnerUserDto = userService.createUser(userDto1);
+        Integer itemOwnerId = itemOwnerUserDto.getId();//=3
+        itemOwners.add(itemOwnerId);
+
+        UserDto userDto2 = makeUserDto(bookingOwnerName, bookingOwnerName + "@email.com");
+        UserDto bookingOwnerUserDto = userService.createUser(userDto2);
+        Integer bookingOwnerId = bookingOwnerUserDto.getId();//=4
+        bookingOwners.add(bookingOwnerId);
+
+        ItemDto itemDto = makeAvailableItemDto(itemName, itemName + "...");
+        ItemDto itemDtoCreated = itemService.createItem(itemOwnerId, itemDto);
+        Integer itemId = itemDtoCreated.getId();//=2
+        items.add(itemId);
+
+        LocalDateTime now = LocalDateTime.now();
+        BookingDto bookingDto = makeBookingDto(now.plusDays(1), now.plusDays(2), itemId);
+        log.info("Booking created by user with id " + bookingOwnerId + " for item with id " + itemId + " owned by user with id " + itemOwnerId);
+
+        assertThrows(NotFoundException.class, () -> bookingService.createBooking(MAGIC_NUMBER, bookingDto));
+    }
+
+    @Order(12)
+    @Test
+    void createBooking_viaBookingData_whenItemIsNotFound_thenThrowNotFoundException() {
+        String itemOwnersName = "itemOwner" + itemOwners.size();
+        String bookingOwnerName = "bookingOwner" + bookingOwners.size();
+        String itemName = "item" + items.size();
+
+        UserDto userDto1 = makeUserDto(itemOwnersName, itemOwnersName + "@email.com");
+        UserDto itemOwnerUserDto = userService.createUser(userDto1);
+        Integer itemOwnerId = itemOwnerUserDto.getId();//=3
+        itemOwners.add(itemOwnerId);
+
+        UserDto userDto2 = makeUserDto(bookingOwnerName, bookingOwnerName + "@email.com");
+        UserDto bookingOwnerUserDto = userService.createUser(userDto2);
+        Integer bookingOwnerId = bookingOwnerUserDto.getId();//=4
+        bookingOwners.add(bookingOwnerId);
+
+        ItemDto itemDto = makeAvailableItemDto(itemName, itemName + "...");
+//        ItemDto itemDtoCreated = itemService.createItem(itemOwnerId, itemDto);
+//        Integer itemId = itemDtoCreated.getId();//=2
+//        items.add(itemId);
+
+        LocalDateTime now = LocalDateTime.now();
+        BookingDto bookingDto = makeBookingDto(now.plusDays(1), now.plusDays(2), MAGIC_NUMBER);
+        log.info("Booking created by user with id " + bookingOwnerId + " for item with id " + MAGIC_NUMBER + " owned by user with id " + itemOwnerId);
+
+        assertThrows(NotFoundException.class, () -> bookingService.createBooking(MAGIC_NUMBER, bookingDto));
+    }
+
+    
+    @Order(13)
+    @Test
+    void createBooking_viaBookingData_whenBookerIsItemOwner_thenThrowNotOwnerException() {
+        String itemOwnersName = "itemOwner" + itemOwners.size();
+        String bookingOwnerName = "bookingOwner" + bookingOwners.size();
+        String itemName = "item" + items.size();
+
+        UserDto userDto1 = makeUserDto(itemOwnersName, itemOwnersName + "@email.com");
+        UserDto itemOwnerUserDto = userService.createUser(userDto1);
+        Integer itemOwnerId = itemOwnerUserDto.getId();//=3
+        itemOwners.add(itemOwnerId);
+
+        UserDto userDto2 = makeUserDto(bookingOwnerName, bookingOwnerName + "@email.com");
+        UserDto bookingOwnerUserDto = userService.createUser(userDto2);
+        Integer bookingOwnerId = bookingOwnerUserDto.getId();//=4
+        bookingOwners.add(bookingOwnerId);
+
+        ItemDto itemDto = makeAvailableItemDto(itemName, itemName + "...");
+        ItemDto itemDtoCreated = itemService.createItem(itemOwnerId, itemDto);
+        Integer itemId = itemDtoCreated.getId();//=2
+        items.add(itemId);
+
+        LocalDateTime now = LocalDateTime.now();
+        BookingDto bookingDto = makeBookingDto(now.plusDays(1), now.plusDays(2), itemId);
+        log.info("Booking created by user with id " + bookingOwnerId + " for item with id " + itemId + " owned by user with id " + itemOwnerId);
+
+        assertThrows(NotOwnerException.class, () -> bookingService.createBooking(itemOwnerId, bookingDto));
+    }
+
+
+    @Order(14)
+    @Test
+    void createBooking_viaBookingData_whenItemIsNotAvailable_thenThrowNotAvailableException() {
+        String itemOwnersName = "itemOwner" + itemOwners.size();
+        String bookingOwnerName = "bookingOwner" + bookingOwners.size();
+        String itemName = "item" + items.size();
+
+        UserDto userDto1 = makeUserDto(itemOwnersName, itemOwnersName + "@email.com");
+        UserDto itemOwnerUserDto = userService.createUser(userDto1);
+        Integer itemOwnerId = itemOwnerUserDto.getId();//=3
+        itemOwners.add(itemOwnerId);
+
+        UserDto userDto2 = makeUserDto(bookingOwnerName, bookingOwnerName + "@email.com");
+        UserDto bookingOwnerUserDto = userService.createUser(userDto2);
+        Integer bookingOwnerId = bookingOwnerUserDto.getId();//=4
+        bookingOwners.add(bookingOwnerId);
+
+        ItemDto itemDto = makeNotAvailableItemDto(itemName, itemName + "...");
+        ItemDto itemDtoCreated = itemService.createItem(itemOwnerId, itemDto);
+        Integer itemId = itemDtoCreated.getId();//=2
+        items.add(itemId);
+
+        LocalDateTime now = LocalDateTime.now();
+        BookingDto bookingDto = makeBookingDto(now.plusDays(1), now.plusDays(2), itemId);
+        log.info("Booking created by user with id " + bookingOwnerId + " for item with id " + itemId + " owned by user with id " + itemOwnerId);
+
+        assertThrows(NotAvailableException.class, () -> bookingService.createBooking(bookingOwnerId, bookingDto));
+    }
+
+    @Order(15)
+    @Test
+    void createBooking_viaBookingData_whenEndIsBeforeStart_thenThrowIllegalStateException() {
+        String itemOwnersName = "itemOwner" + itemOwners.size();
+        String bookingOwnerName = "bookingOwner" + bookingOwners.size();
+        String itemName = "item" + items.size();
+
+        UserDto userDto1 = makeUserDto(itemOwnersName, itemOwnersName + "@email.com");
+        UserDto itemOwnerUserDto = userService.createUser(userDto1);
+        Integer itemOwnerId = itemOwnerUserDto.getId();//=3
+        itemOwners.add(itemOwnerId);
+
+        UserDto userDto2 = makeUserDto(bookingOwnerName, bookingOwnerName + "@email.com");
+        UserDto bookingOwnerUserDto = userService.createUser(userDto2);
+        Integer bookingOwnerId = bookingOwnerUserDto.getId();//=4
+        bookingOwners.add(bookingOwnerId);
+
+        ItemDto itemDto = makeAvailableItemDto(itemName, itemName + "...");
+        ItemDto itemDtoCreated = itemService.createItem(itemOwnerId, itemDto);
+        Integer itemId = itemDtoCreated.getId();//=2
+        items.add(itemId);
+
+        LocalDateTime now = LocalDateTime.now();
+        BookingDto bookingDto = makeBookingDto(now.plusDays(2), now.plusDays(1), itemId);
+        log.info("Booking created by user with id " + bookingOwnerId + " for item with id " + itemId + " owned by user with id " + itemOwnerId);
+
+        assertThrows(IllegalStateException.class, () -> bookingService.createBooking(bookingOwnerId, bookingDto));
+    }
+
     @Order(2)
     @Test
     void updateBookingByApproving() {
@@ -106,7 +278,7 @@ public class BookingServiceImplIntegrationTest {
         Integer userId2 = savedUserDto2.getId();//=4
         bookingOwners.add(userId2);
 
-        ItemDto itemDto = makeItemDto("Twothing", "Two thing");
+        ItemDto itemDto = makeAvailableItemDto("Twothing", "Two thing");
         ItemDto itemDtoCreated = itemService.createItem(userId1, itemDto);
         Integer itemId = itemDtoCreated.getId();//=2
         items.add(itemId);
@@ -155,24 +327,13 @@ public class BookingServiceImplIntegrationTest {
         assertThatBookingsEqual(gotBookingOutDto, booking);
     }
 
-    private static void assertThatBookingsEqual(BookingOutDto gotBookingOutDto, Booking booking) {
-        assertAll(
-                () -> assertThat(booking.getId(), equalTo(gotBookingOutDto.getId())),
-                () -> assertThat(booking.getStart(), equalTo(gotBookingOutDto.getStart())),
-                () -> assertThat(booking.getEnd(), equalTo(gotBookingOutDto.getEnd())),
-                () -> assertThat(booking.getItem().getId(), equalTo(gotBookingOutDto.getItem().getId())),
-                () -> assertThat(booking.getBooker().getId(), equalTo(gotBookingOutDto.getBooker().getId())),
-                () -> assertThat(booking.getStatus(), equalTo(gotBookingOutDto.getStatus()))
-        );
-    }
-
     @Order(4)
     @Test
     void getUserBookings() {
 
         BookingData bookingData = makeBookingData();
         Integer bookerId = bookingData.getBookingOwner().getId();
-        BookingData bookingData2 = makeBookingDataByBookerId(bookerId);
+//        BookingData bookingData2 = makeBookingDataByBookerId(bookerId);
 
         List<BookingOutDto> gotBookingOutDto = bookingService.getUserBookings(bookerId, BookingState.ALL.getName(), 1, 2);
 
@@ -197,19 +358,40 @@ public class BookingServiceImplIntegrationTest {
 
     @Order(5)
     @Test
-    void getUserItemsBookings() {
+    void getItemsBookings() {
         //TODO:
-        assertThat(true, equalTo(true));
+
+        BookingData bookingData = makeBookingData();
+        Integer bookerId = bookingData.getBookingOwner().getId();
+        Integer itemOwnerId = bookingData.getItemOwner().getId();
+//        BookingData bookingData2 = makeBookingDataByBookerId(bookerId);
+
+        List<BookingOutDto> dtos = bookingService
+                .getItemsBookings(itemOwnerId, BookingState.ALL.getName(), null, null);
+
+        log.info("dtos.size()=" + dtos.size());
+        for (BookingOutDto dto : dtos) {
+            log.info("Get booking by id " + dto.getId() + " booked by user id " + dto.getBooker().getId() +
+                    " for item by " + dto.getItem().getId());
+        }
+
+        BooleanExpression byItem = QBooking.booking.item.owner.id.eq(itemOwnerId);
+        List<Booking> bookings = (List<Booking>) bookingRepository.findAll(byItem, SORT_BY_START_DESC);
+
+        log.info("bookings.size()=" + bookings.size());
+        for (Booking booking : bookings) {
+            log.info("Get from repo booking by id " + booking.getId() + " booked by user id " + booking.getBooker().getId() +
+                    " for item by " + booking.getItem().getId());
+        }
+
+        assertThat(bookings.size(), equalTo(dtos.size()));
+
+        for (int i = 0; i < bookings.size(); i++) {
+            assertThatBookingsEqual(dtos.get(i), bookings.get(i));
+        }
     }
 
-    @Order(6)
-    @Test
-    void getItemsBookingsByUser() {
-        //TODO:
-        assertThat(true, equalTo(true));
-    }
-
-    @Order(100)
+    @Order(99)
     @Test
     void deleteBooking() {
         log.info("Bookings size is " + bookings.size());
@@ -218,6 +400,7 @@ public class BookingServiceImplIntegrationTest {
             bookingService.deleteBooking(bookingOwners.get(i), bookings.get(i));
         }
     }
+
 
     @Data
     private static class BookingData {
@@ -235,35 +418,68 @@ public class BookingServiceImplIntegrationTest {
 
         UserDto userDto1 = makeUserDto(itemOwnersName, itemOwnersName + "@email.com");
         UserDto itemOwnerUserDto1 = userService.createUser(userDto1);
-        Integer userId1 = itemOwnerUserDto1.getId();//=3
+        Integer itemOwnerId = itemOwnerUserDto1.getId();//=3
 
         UserDto userDto2 = makeUserDto(bookingOwnerName, bookingOwnerName + "@email.com");
         UserDto bookingOwnerUserDto2 = userService.createUser(userDto2);
-        Integer userId2 = bookingOwnerUserDto2.getId();//=4
+        Integer bookingOwnerId = bookingOwnerUserDto2.getId();//=4
 
-        ItemDto itemDto = makeItemDto(itemName, itemName + "...");
-        ItemDto itemDtoCreated = itemService.createItem(userId1, itemDto);
+        ItemDto itemDto = makeAvailableItemDto(itemName, itemName + "...");
+        ItemDto itemDtoCreated = itemService.createItem(itemOwnerId, itemDto);
         Integer itemId = itemDtoCreated.getId();//=2
 
         LocalDateTime now = LocalDateTime.now();
         BookingDto bookingDto = makeBookingDto(now.plusDays(1), now.plusDays(2), itemId);
 
-        log.info("Booking created by user id " + userId2 + " for item by " + itemId + " owned by user by id " + userId1);
-        BookingOutDto booking = bookingService.createBooking(userId2, bookingDto);
+        log.info("Booking created by user id " + bookingOwnerId + " for item by " + itemId + " owned by user by id " + itemOwnerId);
+        BookingOutDto booking = bookingService.createBooking(bookingOwnerId, bookingDto);
         Integer bookingId = booking.getId();//=2
 
-        addToLists(userId1, userId2, itemId, bookingId);
+        addToLists(itemOwnerId, bookingOwnerId, itemId, bookingId);
 
         return new BookingData(booking, itemDtoCreated, itemOwnerUserDto1, bookingOwnerUserDto2);
     }
 
-    private static void addToLists(Integer userId1, Integer userId2, Integer itemId, Integer bookingId) {
-        //TODO: move into makeBookingData after each object creating
-        itemOwners.add(userId1);
-        bookingOwners.add(userId2);
+    private BookingData makeBookingData(Boolean available) {
+        String itemOwnersName = "itemOwner" + itemOwners.size();
+        String bookingOwnerName = "bookingOwner" + bookingOwners.size();
+        String itemName = "item" + items.size();
+
+        UserDto userDto1 = makeUserDto(itemOwnersName, itemOwnersName + "@email.com");
+        UserDto itemOwnerUserDto = userService.createUser(userDto1);
+        Integer itemOwnerId = itemOwnerUserDto.getId();//=3
+        itemOwners.add(itemOwnerId);
+
+        UserDto userDto2 = makeUserDto(bookingOwnerName, bookingOwnerName + "@email.com");
+        UserDto bookingOwnerUserDto = userService.createUser(userDto2);
+        Integer bookingOwnerId = bookingOwnerUserDto.getId();//=4
+        bookingOwners.add(bookingOwnerId);
+
+        ItemDto itemDto;
+        if(available) {
+             itemDto = makeAvailableItemDto(itemName, itemName + "...");
+        } else {
+             itemDto = makeNotAvailableItemDto(itemName, itemName + "...");
+        }
+
+        ItemDto itemDtoCreated = itemService.createItem(itemOwnerId, itemDto);
+        Integer itemId = itemDtoCreated.getId();//=2
         items.add(itemId);
+
+        LocalDateTime now = LocalDateTime.now();
+        BookingDto bookingDto = makeBookingDto(now.plusDays(1), now.plusDays(2), itemId);
+
+        log.info("Booking created by user with id " + bookingOwnerId + " for item with id " + itemId + " owned by user with id " + itemOwnerId);
+        BookingOutDto booking = bookingService.createBooking(bookingOwnerId, bookingDto);
+        Integer bookingId = booking.getId();//=2
         bookings.add(bookingId);
+
+//        addToLists(itemOwnerId, bookingOwnerId, itemId, bookingId);
+
+        BookingData bookingData = new BookingData(booking, itemDtoCreated, itemOwnerUserDto, bookingOwnerUserDto);
+        return bookingData;
     }
+
 
     private BookingData makeBookingDataByUseId(Integer userId) {
         UserDto userDto1 = makeUserDto("Doe" + userId, "user" + userId + "@email.com");
@@ -274,7 +490,7 @@ public class BookingServiceImplIntegrationTest {
 //        UserDto bookingOwnerUserDto2 = userService.createUser(userDto2);
 //        Integer userId2 = bookingOwnerUserDto2.getId();//=4
 
-        ItemDto itemDto = makeItemDto("Twothing", "Two thing");
+        ItemDto itemDto = makeAvailableItemDto("Twothing", "Two thing");
         ItemDto itemDtoCreated = itemService.createItem(userId1, itemDto);
         Integer itemId = itemDtoCreated.getId();//=2
 
@@ -287,7 +503,6 @@ public class BookingServiceImplIntegrationTest {
 
         return new BookingData(createdBookingOutDto, itemDtoCreated, itemOwnerUserDto1, userService.getUser(userId));
     }
-
 
     private BookingData makeBookingDataByBookerId(Integer bookerId) {
         String itemOwnersName = "itemOwner" + itemOwners.size();
@@ -302,7 +517,7 @@ public class BookingServiceImplIntegrationTest {
 //        UserDto bookingOwnerUserDto2 = userService.createUser(userDto2);
 //        Integer userId2 = bookingOwnerUserDto2.getId();//=4
 
-        ItemDto itemDto = makeItemDto(itemName, itemName + "...");
+        ItemDto itemDto = makeAvailableItemDto(itemName, itemName + "...");
         ItemDto itemDtoCreated = itemService.createItem(userId1, itemDto);
         Integer itemId = itemDtoCreated.getId();//=2
 
@@ -318,6 +533,16 @@ public class BookingServiceImplIntegrationTest {
         return new BookingData(booking, itemDtoCreated, itemOwnerUserDto1, userService.getUser(bookerId));
     }
 
+
+
+    private static void addToLists(Integer userId1, Integer userId2, Integer itemId, Integer bookingId) {
+        //TODO: move into makeBookingData after each object creating
+        itemOwners.add(userId1);
+        bookingOwners.add(userId2);
+        items.add(itemId);
+        bookings.add(bookingId);
+    }
+
     private UserDto makeUserDto(String name, String email) {
         UserDto dto = new UserDto();
         dto.setName(name);
@@ -331,11 +556,20 @@ public class BookingServiceImplIntegrationTest {
         return dto;
     }
 
-    private ItemDto makeItemDto(String name, String description) {
+    private ItemDto makeAvailableItemDto(String name, String description) {
         ItemDto dto = new ItemDto();
         dto.setName(name);
         dto.setDescription(description);
         dto.setAvailable(Boolean.TRUE);
+        return dto;
+    }
+
+
+    private ItemDto makeNotAvailableItemDto(String name, String description) {
+        ItemDto dto = new ItemDto();
+        dto.setName(name);
+        dto.setDescription(description);
+        dto.setAvailable(Boolean.FALSE);
         return dto;
     }
 
@@ -354,5 +588,17 @@ public class BookingServiceImplIntegrationTest {
         dto.setEnd(end);
         dto.setItemId(itemId);
         return dto;
+    }
+
+
+    private static void assertThatBookingsEqual(BookingOutDto gotBookingOutDto, Booking booking) {
+        assertAll(
+                () -> assertThat(booking.getId(), equalTo(gotBookingOutDto.getId())),
+                () -> assertThat(booking.getStart(), equalTo(gotBookingOutDto.getStart())),
+                () -> assertThat(booking.getEnd(), equalTo(gotBookingOutDto.getEnd())),
+                () -> assertThat(booking.getItem().getId(), equalTo(gotBookingOutDto.getItem().getId())),
+                () -> assertThat(booking.getBooker().getId(), equalTo(gotBookingOutDto.getBooker().getId())),
+                () -> assertThat(booking.getStatus(), equalTo(gotBookingOutDto.getStatus()))
+        );
     }
 }

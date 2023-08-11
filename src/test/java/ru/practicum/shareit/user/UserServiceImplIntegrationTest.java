@@ -20,6 +20,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static ru.practicum.shareit.util.Constants.MAGIC_NUMBER;
 
 @Slf4j
 @Transactional
@@ -121,7 +122,7 @@ public class UserServiceImplIntegrationTest {
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
         UserDto savedUserDto = userService.createUser(userDto);
 
-        Integer userId = 100;
+        Integer userId = MAGIC_NUMBER;
         UserDto userDtoToUpdate = makeUserDto("Up Date", "update@email.com");
 //        User savedMockedUser = new User(1, "Up Date", "update@email.com");
 

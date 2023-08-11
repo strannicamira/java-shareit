@@ -56,11 +56,11 @@ public class ErrorHandler {
         return new ErrorResponse(e.getMessage());
     }
 
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT) // 409
-    public ErrorResponse handleDuplicateEmailFoundException(final DuplicateEmailFoundException e) {
-        return new ErrorResponse(e.getMessage());
-    }
+//    @ExceptionHandler
+//    @ResponseStatus(HttpStatus.CONFLICT) // 409
+//    public ErrorResponse handleDuplicateEmailFoundException(final DuplicateEmailFoundException e) {
+//        return new ErrorResponse(e.getMessage());
+//    }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT) // 409

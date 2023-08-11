@@ -10,4 +10,6 @@ public interface BookingRepository extends JpaRepository<Booking, Integer>, Quer
     void deleteByBookerIdAndId(Integer userId, Integer bookingId);
 
     List<Booking> findAllByBookerId(Integer bookerId, Sort sortByStartDesc);
+
+    List<Booking> findAllByItemOwnerId(Integer itemOwnerId, Sort sortByStartDesc);
 }

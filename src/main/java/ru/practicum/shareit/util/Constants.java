@@ -12,5 +12,6 @@ public class Constants {
 
     public static final Sort SORT_BY_REQUEST_CREATED_DESC = Sort.by(Sort.Direction.DESC, "created");
 
+    public static final Integer MAGIC_NUMBER = 999;
 
 }

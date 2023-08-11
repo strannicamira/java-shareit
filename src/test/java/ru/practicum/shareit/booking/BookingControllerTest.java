@@ -165,7 +165,7 @@ class BookingControllerTest {
     @Order(5)
     @Test
     public void getUserItemsBookings() throws Exception {
-        when(bookingService.getUserItemsBookings(anyInt(), anyString(), anyInt(), anyInt()))
+        when(bookingService.getItemsBookings(anyInt(), anyString(), anyInt(), anyInt()))
                 .thenReturn(List.of(updatedBookingOutDto));
 
         mockMvc.perform(get("/bookings/owner")
