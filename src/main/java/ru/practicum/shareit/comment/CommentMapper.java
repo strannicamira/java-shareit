@@ -2,25 +2,22 @@ package ru.practicum.shareit.comment;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import ru.practicum.shareit.item.Item;
-import ru.practicum.shareit.user.User;
 
-import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CommentMapper {
-    @Valid
-    public static Comment mapToComment(CommentItemDto commentItemDto, Item item, User user) {
-        Comment comment = new Comment();
-        comment.setId(commentItemDto.getId());
-        comment.setText(commentItemDto.getText());
-        comment.setItem(item);
-        comment.setAuthor(user);
-        comment.setCreated(commentItemDto.getCreated());
-        return comment;
-    }
+//    @Valid
+//    public static Comment mapToComment(CommentItemDto commentItemDto, Item item, User user) {
+//        Comment comment = new Comment();
+//        comment.setId(commentItemDto.getId());
+//        comment.setText(commentItemDto.getText());
+//        comment.setItem(item);
+//        comment.setAuthor(user);
+//        comment.setCreated(commentItemDto.getCreated());
+//        return comment;
+//    }
 
     public static CommentItemDto mapToCommentItemDto(Comment comment) {
         return new CommentItemDto(
