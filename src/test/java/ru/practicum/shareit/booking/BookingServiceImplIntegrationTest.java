@@ -497,22 +497,6 @@ public class BookingServiceImplIntegrationTest {
         }
     }
 
-    private static Pageable getPage(Integer from, Integer size, Sort sort) {
-//        Sort sort = SORT_BY_START_DESC;
-        Pageable page = null;
-        if (from != null && size != null) {
-
-            if (from < 0 || size <= 0) {
-                throw new IllegalStateException("Not correct page parameters");
-            }
-            page = PageRequest.of(from > 0 ? from / size : 0, size, sort);
-        }
-        return page;
-    }
-
-
-
-
 
 
 
@@ -593,6 +577,45 @@ public class BookingServiceImplIntegrationTest {
         for (int i = 0; i < bookings.size(); i++) {
             assertThatBookingsEqual(dtos.get(i), bookings.get(i));
         }
+    }
+
+    @Order(52)
+    @Test
+    void getItemBookings_viaBookingData_whenFromIsNegative_thenThrowIllegalStateException() {
+        Integer from = -20;
+        Integer size = 20;
+
+        BookingData bookingData = makeBookingData();
+        Integer itemOwnerId = bookingData.getItemOwner().getId();
+
+        assertThrows(IllegalStateException.class, () -> bookingService.getItemsBookings(itemOwnerId, BookingState.ALL.getName(), from, size));
+    }
+
+    @Order(53)
+    @Test
+    void getItemBookings_viaBookingData_whenSizeIsNegative_thenThrowIllegalStateException() {
+        Integer from = 0;
+        Integer size = -20;
+
+        BookingData bookingData = makeBookingData();
+        Integer itemOwnerId = bookingData.getItemOwner().getId();
+
+        assertThrows(IllegalStateException.class, () -> bookingService.getItemsBookings(itemOwnerId, BookingState.ALL.getName(), from, size));
+    }
+
+    @Order(54)
+    @Test
+    void getItemBookings_viaBookingData_whenFromIsNull_thenThrowIllegalStateException() {
+
+        //TODO:
+
+    }
+
+    @Order(55)
+    @Test
+    void getItemBookings_viaBookingData_whenSizeIsNull_thenThrowIllegalStateException() {
+
+        //TODO:
     }
 
 
@@ -794,6 +817,23 @@ public class BookingServiceImplIntegrationTest {
         dto.setItemId(itemId);
         return dto;
     }
+
+
+    private static Pageable getPage(Integer from, Integer size, Sort sort) {
+//        Sort sort = SORT_BY_START_DESC;
+        Pageable page = null;
+        if (from != null && size != null) {
+
+            if (from < 0 || size <= 0) {
+                throw new IllegalStateException("Not correct page parameters");
+            }
+            page = PageRequest.of(from > 0 ? from / size : 0, size, sort);
+        }
+        return page;
+    }
+
+
+
 
 
     private static void assertThatBookingsEqual(BookingOutDto gotBookingOutDto, Booking booking) {
