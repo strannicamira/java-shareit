@@ -83,7 +83,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
 
         if (!userId.equals(booking.getItem().getOwner().getId())) {
-            throw new NotOwnerException("User is not owner");
+            throw new NotOwnerException("User is not item owner");
         }
 
         BookingStatus bookingStatus = approved ? BookingStatus.APPROVED : BookingStatus.REJECTED;
@@ -104,7 +104,7 @@ public class BookingServiceImpl implements BookingService {
         log.info("Search booking by booking id {}", bookingId);
 
         User booker = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User is not found"));
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
@@ -116,32 +116,6 @@ public class BookingServiceImpl implements BookingService {
         return BookingOutMapper.mapToBookingOutDto(booking);
     }
 
-    private static Pageable getPage(Integer from, Integer size) {
-        Sort sort = SORT_BY_START_DESC;
-        Pageable page = null;
-        if (from != null && size != null) {
-
-            if (from < 0 || size < 0) {
-                throw new IllegalStateException("Not correct page parameters");
-            }
-            page = PageRequest.of(from > 0 ? from / size : 0, size, sort);
-        }
-        return page;
-    }
-
-    private List<BookingOutDto> getBookingOutDtos(Integer userId, String state, BooleanExpression expression, Pageable page) {
-        User booker = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
-
-        BookingState bookingState = validateBookingState(state);
-
-        Iterable<Booking> bookings = getBookings(bookingState, expression, page);
-
-        List<BookingOutDto> bookingOutDtos = BookingOutMapper.mapToBookingOutDto(bookings);
-
-        return bookingOutDtos;
-    }
-
-
     @Override
     @Transactional(readOnly = true)
     public List<BookingOutDto> getUserBookings(Integer userId, String state, Integer from, Integer size) {
@@ -149,7 +123,7 @@ public class BookingServiceImpl implements BookingService {
         BooleanExpression byBooker = QBooking.booking.booker.id.eq(userId);
 
         List<BookingOutDto> bookingOutDtos = new ArrayList<>();
-        Pageable page = getPage(from, size);
+        Pageable page = getPage(from, size, SORT_BY_START_DESC);
         if (page != null) {
             bookingOutDtos = getBookingOutDtos(userId, state, byBooker, page);
         } else {
@@ -164,7 +138,7 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingOutDto> getItemsBookings(Integer userId, String state, Integer from, Integer size) {
         log.info("Search all bookings by owner user id {}", userId);
         BooleanExpression byItem = QBooking.booking.item.owner.id.eq(userId);
-        Pageable page = getPage(from, size);
+        Pageable page = getPage(from, size, SORT_BY_START_DESC);
         List<BookingOutDto> bookingOutDtos = new ArrayList<>();
         if (page != null) {
             bookingOutDtos = getBookingOutDtos(userId, state, byItem, page);
@@ -189,6 +163,31 @@ public class BookingServiceImpl implements BookingService {
     public void deleteBooking(Integer userId, Integer bookingId) {
         log.info("Delete booking by user id {} by booking id {}", userId, bookingId);
         bookingRepository.deleteByBookerIdAndId(userId, bookingId);
+    }
+
+    private static Pageable getPage(Integer from, Integer size, Sort sort) {
+//        Sort sort = SORT_BY_START_DESC;
+        Pageable page = null;
+        if (from != null && size != null) {
+
+            if (from < 0 || size <= 0) {
+                throw new IllegalStateException("Not correct page parameters");
+            }
+            page = PageRequest.of(from > 0 ? from / size : 0, size, sort);
+        }
+        return page;
+    }
+
+    private List<BookingOutDto> getBookingOutDtos(Integer userId, String state, BooleanExpression expression, Pageable page) {
+        User booker = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+
+        BookingState bookingState = validateBookingState(state);
+
+        Iterable<Booking> bookings = getBookings(bookingState, expression, page);
+
+        List<BookingOutDto> bookingOutDtos = BookingOutMapper.mapToBookingOutDto(bookings);
+
+        return bookingOutDtos;
     }
 
 

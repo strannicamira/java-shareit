@@ -7,6 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -28,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import static ru.practicum.shareit.util.Constants.MAGIC_NUMBER;
 import static ru.practicum.shareit.util.Constants.SORT_BY_START_DESC;
 
@@ -52,6 +56,7 @@ public class BookingServiceImplIntegrationTest {
     private static List<Integer> bookingOwners;
     private static List<Integer> items;
     private static List<Integer> bookings;
+    private static List<Integer> notOwners;
 
 
     @BeforeAll
@@ -60,6 +65,7 @@ public class BookingServiceImplIntegrationTest {
         bookingOwners = new ArrayList<>();
         items = new ArrayList<>();
         bookings = new ArrayList<>();
+        notOwners = new ArrayList<>();
     }
 
     @Order(1)
@@ -113,7 +119,6 @@ public class BookingServiceImplIntegrationTest {
 
         assertThatBookingsEqual(bookingOutDto, booking);
     }
-
 
 
     @Order(11)
@@ -174,7 +179,7 @@ public class BookingServiceImplIntegrationTest {
         assertThrows(NotFoundException.class, () -> bookingService.createBooking(MAGIC_NUMBER, bookingDto));
     }
 
-    
+
     @Order(13)
     @Test
     void createBooking_viaBookingData_whenBookerIsItemOwner_thenThrowNotOwnerException() {
@@ -263,7 +268,14 @@ public class BookingServiceImplIntegrationTest {
         assertThrows(IllegalStateException.class, () -> bookingService.createBooking(bookingOwnerId, bookingDto));
     }
 
-    @Order(2)
+    @Order(15)
+    @Test
+    void createBooking_viaBookingData_whenEndEqualsStart_thenThrowIllegalStateException() {
+        //TODO:
+    }
+
+
+    @Order(20)
     @Test
     void updateBookingByApproving() {
         //TODO: refactor
@@ -305,8 +317,32 @@ public class BookingServiceImplIntegrationTest {
         assertThat(booking.getStatus(), equalTo(BookingStatus.APPROVED));
     }
 
+    @Order(21)
+    @Test
+    void updateBooking_viaBookingData_whenBookerIsNotFound_thenThrowNotFoundException() {
+        //TODO:
+    }
 
-    @Order(3)
+    @Order(22)
+    @Test
+    void updateBooking_viaBookingData_whenItemIsNotFound_thenThrowNotFoundException() {
+        //TODO:
+    }
+
+
+    @Order(23)
+    @Test
+    void updateBooking_viaBookingData_whenBookerIsNotItemOwner_thenThrowNotOwnerException() {
+        //TODO:
+    }
+
+    @Order(24)
+    @Test
+    void updateBooking_viaBookingData_whenBookingIsAlreadyApproved_thenThrowIllegalStateException() {
+        //TODO:
+    }
+
+    @Order(30)
     @Test
     void getBooking() {
 
@@ -327,7 +363,41 @@ public class BookingServiceImplIntegrationTest {
         assertThatBookingsEqual(gotBookingOutDto, booking);
     }
 
-    @Order(4)
+    @Order(31)
+    @Test
+    void getBooking_whenUserIsNotFound_thenThrowNotFoundException() {
+        //TODO:
+
+    }
+
+    @Order(32)
+    @Test
+    void getBooking_whenBookingIsNotFound_thenThrowNotFoundException() {
+        //TODO:
+    }
+
+    @Order(33)
+    @Test
+    void getBooking_whenUserIsNotBooker_thenThrowNotOwnerException() {
+        UserDto userDto = makeUserDto("NotOwner", "NotOwner@email.com");
+        UserDto notOwnerUserDto = userService.createUser(userDto);
+        Integer notOwnerId = notOwnerUserDto.getId();
+        notOwners.add(notOwnerId);
+
+        BookingData bookingData = makeBookingData();
+
+        Integer bookingId = bookingData.getBookingOutDto().getId();
+        Integer itemId = bookingData.getItem().getId();
+        Integer bookerId = bookingData.getBookingOwner().getId();
+        Integer itemOwnerId = bookingData.getItemOwner().getId();
+
+        log.info("Get booking by id " + notOwnerId + " booked by user id " + bookerId +
+                " for item by " + itemId + " owned by user by id " + itemOwnerId);
+
+        assertThrows(NotOwnerException.class, () -> bookingService.getBooking(notOwnerId, bookingId));
+    }
+
+    @Order(40)
     @Test
     void getUserBookings() {
 
@@ -335,7 +405,7 @@ public class BookingServiceImplIntegrationTest {
         Integer bookerId = bookingData.getBookingOwner().getId();
 //        BookingData bookingData2 = makeBookingDataByBookerId(bookerId);
 
-        List<BookingOutDto> gotBookingOutDto = bookingService.getUserBookings(bookerId, BookingState.ALL.getName(), 1, 2);
+        List<BookingOutDto> gotBookingOutDto = bookingService.getUserBookings(bookerId, BookingState.ALL.getName(), null, null);
 
         for (BookingOutDto dto : gotBookingOutDto) {
             log.info("Get booking by id " + dto.getId() + " booked by user id " + dto.getBooker().getId() +
@@ -353,13 +423,109 @@ public class BookingServiceImplIntegrationTest {
         for (int i = 0; i < bookings.size(); i++) {
             assertThatBookingsEqual(gotBookingOutDto.get(i), bookings.get(i));
         }
+    }
+
+    @Order(41)
+    @Test
+    void getUserBookings_viaBookingData_whenFromIsNegative_thenThrowIllegalStateException() {
+        BookingData bookingData = makeBookingData();
+        Integer bookerId = bookingData.getBookingOwner().getId();
+
+        assertThrows(IllegalStateException.class, () -> bookingService.getUserBookings(bookerId, BookingState.ALL.getName(), -20, 20));
+    }
+
+    @Order(42)
+    @Test
+    void getUserBookings_viaBookingData_whenSizeIsNegative_thenThrowIllegalStateException() {
+        BookingData bookingData = makeBookingData();
+        Integer bookerId = bookingData.getBookingOwner().getId();
+
+        assertThrows(IllegalStateException.class, () -> bookingService.getUserBookings(bookerId, BookingState.ALL.getName(), 0, -20));
+    }
+
+    @Order(43)
+    @Test
+    void getUserBookings_viaBookingData_whenFromIsNull_thenThrowIllegalStateException() {
+//        BookingData bookingData = makeBookingData();
+//        Integer bookerId = bookingData.getBookingOwner().getId();
+//
+//        assertThrows(IllegalStateException.class, () -> bookingService.getUserBookings(bookerId, BookingState.ALL.getName(), null, 20));
+
+        //TODO:
 
     }
 
-    @Order(5)
+    @Order(44)
+    @Test
+    void getUserBookings_viaBookingData_whenSizeIsNull_thenThrowIllegalStateException() {
+//        BookingData bookingData = makeBookingData();
+//        Integer bookerId = bookingData.getBookingOwner().getId();
+//
+//        assertThrows(IllegalStateException.class, () -> bookingService.getUserBookings(bookerId, BookingState.ALL.getName(), 0, null));
+
+        //TODO:
+    }
+
+
+    @Order(45)
+    @Test
+    void getUserBookings_viaBookingData_whenFromAndSizeIsNotNull_thenReturnList() {
+
+        Integer from = 0;
+        Integer size = 20;
+        BookingData bookingData = makeBookingData();
+        Integer bookerId = bookingData.getBookingOwner().getId();
+
+        List<BookingOutDto> gotBookingOutDto = bookingService.getUserBookings(bookerId, BookingState.ALL.getName(), from, size);
+
+        for (BookingOutDto dto : gotBookingOutDto) {
+            log.info("Get booking by id " + dto.getId() + " booked by user id " + dto.getBooker().getId() +
+                    " for item by " + dto.getItem().getId());
+        }
+
+        Pageable page = getPage(from, size, SORT_BY_START_DESC);
+        List<Booking> bookings = bookingRepository.findAllByBookerId(bookerId, page);
+
+        for (Booking booking : bookings) {
+            log.info("Get from repo booking by id " + booking.getId() + " booked by user id " + booking.getBooker().getId() +
+                    " for item by " + booking.getItem().getId());
+        }
+
+        assertThat(bookings.size(), equalTo(gotBookingOutDto.size()));
+        for (int i = 0; i < bookings.size(); i++) {
+            assertThatBookingsEqual(gotBookingOutDto.get(i), bookings.get(i));
+        }
+    }
+
+    private static Pageable getPage(Integer from, Integer size, Sort sort) {
+//        Sort sort = SORT_BY_START_DESC;
+        Pageable page = null;
+        if (from != null && size != null) {
+
+            if (from < 0 || size <= 0) {
+                throw new IllegalStateException("Not correct page parameters");
+            }
+            page = PageRequest.of(from > 0 ? from / size : 0, size, sort);
+        }
+        return page;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    @Order(50)
     @Test
     void getItemsBookings() {
-        //TODO:
 
         BookingData bookingData = makeBookingData();
         Integer bookerId = bookingData.getBookingOwner().getId();
@@ -390,6 +556,46 @@ public class BookingServiceImplIntegrationTest {
             assertThatBookingsEqual(dtos.get(i), bookings.get(i));
         }
     }
+
+    @Order(51)
+    @Test
+    void getItemsBookings_viaBookingData_whenFromAndSizeIsNotNull_thenReturnList() {
+
+        BookingData bookingData = makeBookingData();
+        Integer bookerId = bookingData.getBookingOwner().getId();
+        Integer itemOwnerId = bookingData.getItemOwner().getId();
+//        BookingData bookingData2 = makeBookingDataByBookerId(bookerId);
+
+        Integer from = 0;
+        Integer size = 20;
+        List<BookingOutDto> dtos = bookingService
+                .getItemsBookings(itemOwnerId, BookingState.ALL.getName(), from, size);
+
+        log.info("dtos.size()=" + dtos.size());
+        for (BookingOutDto dto : dtos) {
+            log.info("Get booking by id " + dto.getId() + " booked by user id " + dto.getBooker().getId() +
+                    " for item by " + dto.getItem().getId());
+        }
+
+        Pageable page = getPage(from, size, SORT_BY_START_DESC);
+
+        BooleanExpression byItem = QBooking.booking.item.owner.id.eq(itemOwnerId);
+        List<Booking> bookings = bookingRepository.findAll(byItem, page).getContent();
+
+        log.info("bookings.size()=" + bookings.size());
+        for (Booking booking : bookings) {
+            log.info("Get from repo booking by id " + booking.getId() + " booked by user id " + booking.getBooker().getId() +
+                    " for item by " + booking.getItem().getId());
+        }
+
+        assertThat(bookings.size(), equalTo(dtos.size()));
+
+        for (int i = 0; i < bookings.size(); i++) {
+            assertThatBookingsEqual(dtos.get(i), bookings.get(i));
+        }
+    }
+
+
 
     @Order(99)
     @Test
@@ -440,7 +646,7 @@ public class BookingServiceImplIntegrationTest {
         return new BookingData(booking, itemDtoCreated, itemOwnerUserDto1, bookingOwnerUserDto2);
     }
 
-    private BookingData makeBookingData(Boolean available) {
+    private BookingData makeBookingDataStepByStep(Boolean available) {
         String itemOwnersName = "itemOwner" + itemOwners.size();
         String bookingOwnerName = "bookingOwner" + bookingOwners.size();
         String itemName = "item" + items.size();
@@ -456,10 +662,10 @@ public class BookingServiceImplIntegrationTest {
         bookingOwners.add(bookingOwnerId);
 
         ItemDto itemDto;
-        if(available) {
-             itemDto = makeAvailableItemDto(itemName, itemName + "...");
+        if (available) {
+            itemDto = makeAvailableItemDto(itemName, itemName + "...");
         } else {
-             itemDto = makeNotAvailableItemDto(itemName, itemName + "...");
+            itemDto = makeNotAvailableItemDto(itemName, itemName + "...");
         }
 
         ItemDto itemDtoCreated = itemService.createItem(itemOwnerId, itemDto);
@@ -532,7 +738,6 @@ public class BookingServiceImplIntegrationTest {
 
         return new BookingData(booking, itemDtoCreated, itemOwnerUserDto1, userService.getUser(bookerId));
     }
-
 
 
     private static void addToLists(Integer userId1, Integer userId2, Integer itemId, Integer bookingId) {

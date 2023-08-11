@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
@@ -12,4 +13,6 @@ public interface BookingRepository extends JpaRepository<Booking, Integer>, Quer
     List<Booking> findAllByBookerId(Integer bookerId, Sort sortByStartDesc);
 
     List<Booking> findAllByItemOwnerId(Integer itemOwnerId, Sort sortByStartDesc);
+
+    List<Booking> findAllByBookerId(Integer bookerId, Pageable page); // for test
 }
