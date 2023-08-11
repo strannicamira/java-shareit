@@ -27,8 +27,7 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -173,8 +172,19 @@ class ItemControllerTest {
     @Order(5)
     @Test
     public void getUserItemsByText() throws Exception {
+        when(itemService.getUserItems(anyInt(),anyString()))
+                .thenReturn(List.of(createdItemDto));
 
-        //TODO:
+        mockMvc.perform(get("/items/search")
+                        .header("X-Sharer-User-Id", "1")
+                        .queryParam("text", "anytext"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id", is(createdItemDto.getId()), Integer.class))
+                .andExpect(jsonPath("$[0].name", is(createdItemDto.getName())))
+                .andExpect(jsonPath("$[0].description", is(createdItemDto.getDescription())))
+                .andExpect(jsonPath("$[0].available", is(createdItemDto.getAvailable())));
+
 
     }
 
