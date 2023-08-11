@@ -46,7 +46,7 @@ public class BookingMapperUnitTest {
         bookingDto.setItemId(item.getId());
         bookingDto.setStart(now.minusDays(1));
         bookingDto.setEnd(now.plusDays(1));
-        Booking booking = BookingMapper.mapToBooking( bookingDto,  item,  userBooker) ;
+        Booking booking = BookingMapper.mapToBooking(bookingDto, item, userBooker);
 
         assertAll(
                 () -> assertThat(bookingDto.getId(), equalTo(booking.getId())),
