@@ -43,21 +43,11 @@ import static ru.practicum.shareit.util.Constants.TIME_PATTERN;
 class ItemRequestControllerTest {
     @Mock
     private ItemRequestService itemRequestService;
-
     @InjectMocks
     private ItemRequestController controller;
-
     private ObjectMapper objectMapper = new ObjectMapper();
-
     private MockMvc mockMvc;
 
-//    private ItemDto createdItemDto;
-//    private ItemDto updatedItemDto;
-//    private ItemDto itemDtoToCreate;
-//    private ItemDtoForUpdate itemDtoToUpdate;
-//    private ItemWithBookingDto itemWithBookingDto;
-//    private Comment comment;
-//    private CommentItemDto createdComment;
 
     private ItemRequest itemRequestToCreate;
     private ItemRequestDto createdItemRequestDto;
@@ -69,7 +59,6 @@ class ItemRequestControllerTest {
                 .standaloneSetup(controller)
                 .build();
 
-
         ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().build();
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
@@ -77,33 +66,15 @@ class ItemRequestControllerTest {
         SimpleDateFormat df = new SimpleDateFormat(TIME_PATTERN);
         mapper.setDateFormat(df);
 
-//        this.boardProcessorController = new MyController();
         this.mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
                 .build();
 
-//        itemDtoToCreate = makeItemDto("Item", "Item...");
-//        createdItemDto = new ItemDto(1, "Item", "Item...", Boolean.TRUE, null);
-//        itemDtoToUpdate = new ItemDtoForUpdate(1, "UpdateItem", "UpdateItem...", Boolean.TRUE);
-//        updatedItemDto = new ItemDto(1, "UpdateItem", "UpdateItem...", Boolean.TRUE, null);
-//        itemWithBookingDto = makeItemWithBookingDto(createdItemDto);
-//        comment = makeComment("Comment");
-//        createdComment = makeCommentItemDto(1, comment, "User Name");
-
-        //        User user1 = new User(1, "John Doe", "john@email.com");
         ItemDto itemDto = new ItemDto(1,"Something", "Some thing", Boolean.TRUE, 1);
         List<ItemDto> itemDtos = Arrays.asList(itemDto);
-
-//        User user2 = new User(2, "Jane Doe", "jane@email.com");
         LocalDateTime now = LocalDateTime.now();
         itemRequestToCreate = makeItemRequest();
-//        Item item = new Item(1, "Something", "Some thing", Boolean.TRUE, user1, itemRequest);
-
-
-//        User user2 = new User(2, "Jane Doe", "jane@email.com");
         createdItemRequestDto = makeItemRequestDto(1, "My first request", now);
-
-
         gotItemRequestDto = makeItemRequestDto(1, "My first request", now, itemDtos);
 
     }
@@ -139,8 +110,6 @@ class ItemRequestControllerTest {
         dto.setItems(itemDtos);
         return dto;
     }
-
-
 
     @Order(1)
     @Test
@@ -190,7 +159,6 @@ class ItemRequestControllerTest {
         mockMvc.perform(get("/requests/{requestId}",1)
                         .header("X-Sharer-User-Id", "1"))
                 .andExpect(status().isOk())
-//                .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$.id", is(gotItemRequestDto.getId()), Integer.class))
                 .andExpect(jsonPath("$.created", is(gotItemRequestDto.getCreated().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))))
                 .andExpect(jsonPath("$.description", is(gotItemRequestDto.getDescription())))
@@ -223,42 +191,4 @@ class ItemRequestControllerTest {
                 .andExpect(jsonPath("$[0].items[0].requestId", is(gotItemRequestDto.getItems().get(0).getRequestId())));
     }
 
-
-
-    private ItemDto makeItemDto(String name, String description) {
-        ItemDto dto = new ItemDto();
-        dto.setName(name);
-        dto.setDescription(description);
-        dto.setAvailable(Boolean.TRUE);
-        return dto;
-    }
-
-    private ItemWithBookingDto makeItemWithBookingDto(ItemDto itemDto) {
-        ItemWithBookingDto dto = new ItemWithBookingDto();
-        dto.setId(itemDto.getId());
-        dto.setName(itemDto.getName());
-        dto.setDescription(itemDto.getDescription());
-        dto.setAvailable(itemDto.getAvailable());
-        dto.setLastBooking(new LastBooking(1, 1));
-        dto.setNextBooking(new NextBooking(2, 2));
-        return dto;
-    }
-
-    private Comment makeComment(String text) {
-        Comment comment = new Comment();
-        comment.setText(text);
-        return comment;
-    }
-
-    private CommentItemDto makeCommentItemDto(Integer id, Comment comment, String authorName) {
-        CommentItemDto dto = new CommentItemDto();
-        dto.setId(id);
-        dto.setText(comment.getText());
-        dto.setAuthorName(authorName);
-        dto.setCreated(LocalDateTime.now());
-//        dto.setCreated(LocalDateTime.now().plusDays(3).truncatedTo(ChronoUnit.NANOS));
-
-//        log.info("getCreated = " + dto.getCreated().toString());
-        return dto;
-    }
 }
