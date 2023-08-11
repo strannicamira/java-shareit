@@ -13,10 +13,6 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import ru.practicum.shareit.booking.LastBooking;
-import ru.practicum.shareit.booking.NextBooking;
-import ru.practicum.shareit.comment.Comment;
-import ru.practicum.shareit.comment.CommentItemDto;
 import ru.practicum.shareit.item.*;
 
 import java.nio.charset.StandardCharsets;
