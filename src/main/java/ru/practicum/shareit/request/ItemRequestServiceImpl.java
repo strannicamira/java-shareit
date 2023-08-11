@@ -22,7 +22,7 @@ import static ru.practicum.shareit.util.Constants.SORT_BY_REQUEST_CREATED_DESC;
 @Transactional(readOnly = true)
 public class ItemRequestServiceImpl implements ItemRequestService {
 
-    private final ItemRequestRepository requestRepository;
+    private final ItemRequestRepository itemRequestRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
 
@@ -36,7 +36,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         itemRequest.setRequester(user);
         itemRequest.setCreated(LocalDateTime.now());
 
-        itemRequest = requestRepository.save(itemRequest);
+        itemRequest = itemRequestRepository.save(itemRequest);
         return ItemRequestMapper.mapToItemRequestDto(itemRequest, null);
     }
 
@@ -45,7 +45,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         log.info("Search item requests by requester id {}", userId);
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
 
-        List<ItemRequest> itemRequests = requestRepository.findAllByRequesterId(userId, SORT_BY_REQUEST_CREATED_DESC);
+        List<ItemRequest> itemRequests = itemRequestRepository.findAllByRequesterId(userId, SORT_BY_REQUEST_CREATED_DESC);
 
         List<ItemRequestDto> itemRequestDtos = new ArrayList<>();
 
@@ -62,7 +62,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     public ItemRequestDto get(Integer userId, Integer requestId) {
         log.info("Search item request by id {}", requestId);
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
-        ItemRequest itemRequest = requestRepository.findById(requestId).orElseThrow(() -> new NotFoundException("Item not found"));
+        ItemRequest itemRequest = itemRequestRepository.findById(requestId).orElseThrow(() -> new NotFoundException("Item request not found"));
         List<Item> items = itemRepository.findAllByItemRequestId(itemRequest.getId());
 
         List<ItemDto> dtos = ItemMapper.mapToItemDto(items);
@@ -83,8 +83,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
             if (from < 0 || size < 0) {
                 throw new IllegalStateException("Not correct page parameters");
             }
-            PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
-            itemRequests = requestRepository.findAll(page).getContent();
+            PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size, SORT_BY_REQUEST_CREATED_DESC);
+            itemRequests = itemRequestRepository.findAll(page).getContent();
 
             for (ItemRequest request : itemRequests) {
                 if (!userId.equals(request.getId())) {

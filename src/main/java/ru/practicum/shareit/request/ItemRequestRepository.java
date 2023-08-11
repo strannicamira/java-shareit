@@ -8,5 +8,5 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import java.util.List;
 
 public interface ItemRequestRepository extends JpaRepository<ItemRequest, Integer>, QuerydslPredicateExecutor<ItemRequest>, PagingAndSortingRepository<ItemRequest, Integer> {
-    List<ItemRequest> findAllByRequesterId(Integer userId, Sort sortByRequestCreatedDesc);
+    List<ItemRequest> findAllByRequesterId(Integer userId, Sort sort);
 }
