@@ -1,8 +1,11 @@
 package ru.practicum.shareit.booking;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+//@ToString
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum BookingStatus {
     WAITING(0, "WAITING"),
     APPROVED(1, "APPROVED"),
