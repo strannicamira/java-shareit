@@ -83,7 +83,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
         if (from != null && size != null) {
 
-            if (from < 0 || size < 0) {
+            if (from < 0 || size <= 0) {
                 throw new IllegalStateException("Not correct page parameters");
             }
             PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size, SORT_BY_REQUEST_CREATED_DESC);

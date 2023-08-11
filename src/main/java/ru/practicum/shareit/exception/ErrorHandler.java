@@ -34,6 +34,12 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST) // 400
+    public ErrorResponse handleIllegalStateException(final IllegalArgumentException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST) // 400
     public ErrorResponse handleIllegalStateException(final IllegalStateException e) {
         return new ErrorResponse(e.getMessage());
     }

@@ -62,7 +62,7 @@ public class ItemRequestServiceImplIntegrationTest {
         assertItemRequests(requsterId, itemRequestDto, itemRequest);
     }
 
-    @Order(5)
+    @Order(2)
     @Test
     void create_whenUserIdDoesNotExist_thenThrowIllegalStateException() {
 
@@ -75,7 +75,7 @@ public class ItemRequestServiceImplIntegrationTest {
         assertThrows(NotFoundException.class, () -> itemRequestService.create(100, itemRequest));
     }
 
-    @Order(2)
+    @Order(3)
     @Test
     void getListOfItemRequestsByUserId() {
         ItemRequestData itemRequestData = makeSimpleItemRequestData();
@@ -91,7 +91,7 @@ public class ItemRequestServiceImplIntegrationTest {
         }
     }
 
-    @Order(5)
+    @Order(4)
     @Test
     void getListOfItemRequestsByUserId_whenUserIdDoesNotExist_thenThrowIllegalStateException() {
 
@@ -103,7 +103,7 @@ public class ItemRequestServiceImplIntegrationTest {
         assertThrows(NotFoundException.class, () -> itemRequestService.get(100));
     }
 
-    @Order(3)
+    @Order(5)
     @Test
     void getItemRequestById() {
         ItemRequestData itemRequestData = makeSimpleItemRequestData();
@@ -118,7 +118,7 @@ public class ItemRequestServiceImplIntegrationTest {
     }
 
 
-    @Order(5)
+    @Order(6)
     @Test
     void getItemRequestById_whenUserIdDoesNotExist_thenThrowIllegalStateException() {
 
@@ -130,7 +130,20 @@ public class ItemRequestServiceImplIntegrationTest {
         assertThrows(NotFoundException.class, () -> itemRequestService.get(100, 100));
     }
 
-    @Order(4)
+
+    @Order(7)
+    @Test
+    void getItemRequestById_whenRequestIdDoesNotExist_thenThrowIllegalStateException() {
+
+        ItemRequestData itemRequestData = makeItemRequestData();
+        Integer requsterId = itemRequestData.getRequestOwner().getId();
+        Integer itemOwnerId = itemRequestData.getItemOwner().getId();
+
+
+        assertThrows(NotFoundException.class, () -> itemRequestService.get(requsterId, 100));
+    }
+
+    @Order(8)
     @Test
     void getAllListOfItemRequestsByUserId() {
         ItemRequestData itemRequestData = makeItemRequestData();
@@ -150,7 +163,7 @@ public class ItemRequestServiceImplIntegrationTest {
         }
     }
 
-    @Order(5)
+    @Order(9)
     @Test
     void getAllListOfItemRequestsByUserId_whenUserIdDoesNotExist_thenThrowIllegalStateException() {
 
@@ -163,7 +176,7 @@ public class ItemRequestServiceImplIntegrationTest {
     }
 
 
-    @Order(5)
+    @Order(10)
     @Test
     void getAllListOfItemRequestsByUserId_whenFromIsNegative_thenThrowIllegalStateException() {
 
@@ -174,7 +187,7 @@ public class ItemRequestServiceImplIntegrationTest {
         assertThrows(IllegalStateException.class, () -> itemRequestService.get(itemOwnerId, -10, 10));
     }
 
-    @Order(6)
+    @Order(11)
     @Test
     void getAllListOfItemRequestsByUserId_whenUserIdIsRequsterId_thenReturnEmptyList() {
         ItemRequestData itemRequestData = makeItemRequestData();
@@ -188,6 +201,19 @@ public class ItemRequestServiceImplIntegrationTest {
 
     }
 
+    @Order(15)
+    @Test
+    void getAllListOfItemRequestsByUserId_whenSizeIsZero_thenReturnEmptyList() {
+        ItemRequestData itemRequestData = makeItemRequestData();
+        Integer requsterId = itemRequestData.getRequestOwner().getId();
+        Integer itemOwnerId = itemRequestData.getItemOwner().getId();
+        Integer from = 10;
+        Integer size = 0;
+
+        assertThrows(IllegalStateException.class, () -> itemRequestService.get(itemOwnerId, from, size));
+
+
+    }
 
     @Data
     @NoArgsConstructor
