@@ -10,6 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import ru.practicum.shareit.exception.ErrorHandler;
+import ru.practicum.shareit.exception.NotFoundException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -23,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.practicum.shareit.util.Constants.MAGIC_NUMBER;
 
 @ExtendWith(MockitoExtension.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -46,6 +49,7 @@ class UserControllerTest {
     void setUp() {
         mvc = MockMvcBuilders
                 .standaloneSetup(controller)
+                .setControllerAdvice(ErrorHandler.class)
                 .build();
 
         userDtoToCreate = new UserDto();
@@ -84,9 +88,9 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.email", is(createdUserDto.getEmail())));
     }
 
-    @Order(2)
+    @Order(20)
     @Test
-    void findAll() throws Exception {
+    void getAllUsers() throws Exception {
         when(userService.getAllUsers())
                 .thenReturn(List.of(createdUserDto));
 
@@ -98,6 +102,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$[0].email", is(createdUserDto.getEmail())))
                 .andExpect(jsonPath("$[0].email", is(createdUserDto.getEmail())));
     }
+
 
     @Order(3)
     @Test
@@ -116,7 +121,7 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.email", is(updatedUserDto.getEmail())));
     }
 
-    @Order(4)
+    @Order(40)
     @Test
     void findById() throws Exception {
         when(userService.getUser(anyInt()))
@@ -132,6 +137,21 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.name", is(createdUserDto.getName())))
                 .andExpect(jsonPath("$.email", is(createdUserDto.getEmail())));
     }
+
+
+    @Order(41)
+    @Test
+    void findById_whenUserIsNotFound_thenReturn404() throws Exception {
+        when(userService.getUser(999))
+                .thenThrow(NotFoundException.class);
+
+        mvc.perform(get("/users/{id}", MAGIC_NUMBER)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError());
+    }
+
 
 
     @Order(5)

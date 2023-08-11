@@ -619,6 +619,11 @@ public class BookingServiceImplIntegrationTest {
     }
 
 
+    @Order(60)
+    @Test
+    void getItemsBookingsByUser() {
+
+    }
 
     @Order(99)
     @Test

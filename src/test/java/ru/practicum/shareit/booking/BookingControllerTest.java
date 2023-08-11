@@ -14,6 +14,9 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import ru.practicum.shareit.exception.ErrorHandler;
+import ru.practicum.shareit.exception.NotAvailableException;
+import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.item.ItemBookingDto;
 import ru.practicum.shareit.user.UserBookingDto;
 
@@ -48,9 +51,6 @@ class BookingControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders
-                .standaloneSetup(controller)
-                .build();
 
         objectMapper = Jackson2ObjectMapperBuilder.json().build();
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
@@ -60,7 +60,8 @@ class BookingControllerTest {
 
         objectMapper.registerModule(new JavaTimeModule());
 
-        this.mockMvc = MockMvcBuilders.standaloneSetup(controller)
+        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(ErrorHandler.class)
                 .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
                 .build();
 
@@ -73,7 +74,7 @@ class BookingControllerTest {
     }
 
 
-    @Order(1)
+    @Order(10)
     @Test
     void createItem() throws Exception {
         when(bookingService.createBooking(anyInt(), any()))
@@ -94,6 +95,51 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.item.id", is(bookingOutDto.getItem().getId())))
                 .andExpect(jsonPath("$.item.name", is(bookingOutDto.getItem().getName())))
         ;
+    }
+
+    @Order(11)
+    @Test
+    void createItem_thenThrowNotOwnerException() throws Exception {
+        when(bookingService.createBooking(anyInt(), any()))
+                .thenThrow(NotOwnerException.class);
+
+        mockMvc.perform(post("/bookings")
+                        .content(objectMapper.writeValueAsString(bookingDto))
+                        .header("X-Sharer-User-Id", "1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Order(12)
+    @Test
+    void createItem_thenThrowNotAvailableException() throws Exception {
+        when(bookingService.createBooking(anyInt(), any()))
+                .thenThrow(NotAvailableException.class);
+
+        mockMvc.perform(post("/bookings")
+                        .content(objectMapper.writeValueAsString(bookingDto))
+                        .header("X-Sharer-User-Id", "1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Order(13)
+    @Test
+    void createItem_thenThrowIllegalStateException() throws Exception {
+        when(bookingService.createBooking(anyInt(), any()))
+                .thenThrow(IllegalStateException.class);
+
+        mockMvc.perform(post("/bookings")
+                        .content(objectMapper.writeValueAsString(bookingDto))
+                        .header("X-Sharer-User-Id", "1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError());
     }
 
     @Order(2)
