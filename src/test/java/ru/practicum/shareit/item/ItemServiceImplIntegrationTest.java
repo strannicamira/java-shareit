@@ -1,18 +1,30 @@
 package ru.practicum.shareit.item;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.BookingDto;
+import ru.practicum.shareit.booking.BookingOutDto;
+import ru.practicum.shareit.booking.BookingService;
+import ru.practicum.shareit.comment.Comment;
+import ru.practicum.shareit.comment.CommentItemDto;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.ItemRequestDto;
+import ru.practicum.shareit.request.ItemRequestService;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserDto;
+import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.UserService;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,16 +46,34 @@ public class ItemServiceImplIntegrationTest {
     private final ItemService itemService;
     private final ItemRepository itemRepository;
     private final UserService userService;
+    private final ItemRequestService itemRequestService;
+    private final BookingService bookingService;
 
     private static List<Integer> itemOwners;
+    private static List<Integer> requestOwners;
+
     private static List<Integer> items;
+    private static List<Integer> requests;
+
     private static List<Integer> notOwners;
+    private static List<Integer> bookingOwners;
+    private static List<Integer> bookings;
+
+    private static List<Integer> comments;
+
+    private static List<Integer> commentOwners;
 
     @BeforeAll
     static void setup() {
         itemOwners = new ArrayList<>();
         items = new ArrayList<>();
         notOwners = new ArrayList<>();
+        requests = new ArrayList<>();
+        requestOwners = new ArrayList<>();
+        bookingOwners = new ArrayList<>();
+        bookings = new ArrayList<>();
+        commentOwners = new ArrayList<>();
+        comments = new ArrayList<>();
     }
 
     @Order(10)
@@ -96,7 +126,7 @@ public class ItemServiceImplIntegrationTest {
     @Order(30)
     @Test
     void getItem() {
-        ItemData itemData = makeItemDataStepByStep(true);
+        ItemData itemData = makeItemDataByAvailable(true);
         Integer itemOwnerId = itemData.itemOwner.getId();
         Integer itemId = itemData.getItem().getId();
 
@@ -104,13 +134,13 @@ public class ItemServiceImplIntegrationTest {
 
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
 
-        assertItems(item, itemDto);
+        assertItemsWithoutRequests(itemDto, item);
     }
 
     @Order(31)
     @Test
     void getItem_whenUserIsNotFound_thenThrowNotFoundException() {
-        ItemData itemData = makeItemDataStepByStep(true);
+        ItemData itemData = makeItemDataByAvailable(true);
         Integer itemOwnerId = itemData.getItemOwner().getId();
         Integer itemId = itemData.getItem().getId();
 //
@@ -124,7 +154,7 @@ public class ItemServiceImplIntegrationTest {
     @Order(32)
     @Test
     void getItem_whenItemIsNotFound_thenThrowNotFoundException() {
-        ItemData itemData = makeItemDataStepByStep(true);
+        ItemData itemData = makeItemDataByAvailable(true);
         Integer itemOwnerId = itemData.getItemOwner().getId();
         Integer itemId = itemData.getItem().getId();
 
@@ -136,32 +166,28 @@ public class ItemServiceImplIntegrationTest {
     }
 
 
-
-
-
-
-
-
     @Order(40)
+//    @Disabled
     @Test
     void getUserItemsWithBooking() {
-        ItemData itemData = makeItemDataStepByStep(true);
+        ItemDataWithBooking itemData =  makeItemWithBooking(true);
         Integer itemOwnerId = itemData.itemOwner.getId();
         Integer itemId = itemData.getItem().getId();
 
         List<ItemWithBookingDto> itemWithBookingDtos = itemService.getUserItemsWithBooking(itemOwnerId);
 
-        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
-//        itemRepository.findByIdIn(List ids)
+        List<Item> items = itemRepository.findAllByOwnerId(itemOwnerId);
 
-//        assertItems(item, itemDto);
+        assertThat(items.size(), equalTo(itemWithBookingDtos.size()));
+        //TODO:
     }
 
 
     @Order(50)
+//    @Disabled
     @Test
     void getUserItems() {
-        ItemData itemData = makeItemDataStepByStep(true);
+        ItemData itemData = makeItemDataByAvailable(true);
         Integer itemOwnerId = itemData.itemOwner.getId();
         Integer itemId = itemData.getItem().getId();
 
@@ -172,47 +198,136 @@ public class ItemServiceImplIntegrationTest {
         BooleanExpression byTextInName = QItem.item.name.toLowerCase().contains(text.toLowerCase());
         BooleanExpression byTextInDescr = QItem.item.description.toLowerCase().contains(text.toLowerCase());
 
-        List<Item> foundItems = (List<Item>)itemRepository.findAll(byAvailable.and(byTextInName.or(byTextInDescr)));
+        List<Item> foundItems = (List<Item>) itemRepository.findAll(byAvailable.and(byTextInName.or(byTextInDescr)));
 
+        assertThat(foundItems.size(), equalTo(itemDtos.size()));
 
-//        List<Item> itemList = itemRepository.findAllByAvailableTrueIn(itemRepository.findAllByNameOrDescriptionContaining(text,text));
-//        itemRepository.findByIdIn(List ids)
-//        itemRepository.findAllby
-
-
-//        assertThat(foundItems.size(),equalTo(items.size()));
-
-//        assertItems(item, itemDto);
+        for (int i = 0; i < itemDtos.size(); i++) {
+            assertItemsWithoutRequests(itemDtos.get(i), foundItems.get(i));
+        }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     private static class ItemData {
-        public final UserDto itemOwner;
-        public final ItemDto item;
+        private UserDto itemOwner;
+        private ItemDto item;
     }
 
-    private ItemData makeItemDataStepByStep(Boolean available) {
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    private static class ItemDataWithRequest {
+        private UserDto itemOwner;
+        private ItemDto item;
+        private UserDto requester;
+        private ItemRequestDto request;
+
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    private static class ItemDataWithBooking {
+        private UserDto itemOwner;
+        private ItemDto item;
+        private UserDto requester;
+        private ItemRequestDto request;
+        private UserDto commentOwner;
+        private List<CommentItemDto> comments;
+//        private ItemWithBookingDto itemWithBooking;
+
+    }
+
+
+    private ItemDataWithBooking makeItemWithBooking(Boolean available) {
+        String itemOwnersName = "itemOwner" + itemOwners.size();
+        String requestOwnerName = "requestOwner" + requestOwners.size();
+        String itemName = "Item" + items.size();
+        String itemRequestName = "Request" + requests.size();
+        String bookingOwnerName = "bookingOwner" + requestOwners.size();
+
+        UserDto requesterUserDto = makeUserDto(requestOwnerName, requestOwnerName + "@email.com");
+        UserDto createdRequesterDto = userService.createUser(requesterUserDto);
+        Integer requesterDtoId = createdRequesterDto.getId();
+        requestOwners.add(requesterDtoId);
+
+        ItemRequest itemRequest = makeItemRequest(itemRequestName);
+        ItemRequestDto createdItemRequestDto = itemRequestService.create(requesterDtoId, itemRequest);
+        Integer itemRequestDtoId = createdItemRequestDto.getId();
+        requests.add(itemRequestDtoId);
+
+        UserDto itemOwnerUserDto = makeUserDto(itemOwnersName, itemOwnersName + "@email.com");
+        UserDto createdItemOwnerDto = userService.createUser(itemOwnerUserDto);
+        Integer itemOwnerId = createdItemOwnerDto.getId();
+        itemOwners.add(itemOwnerId);
+
+        ItemDto iItemDtoWithItemRequest = makeItemDtoWithItemRequest(itemName, itemName + "...", available, itemRequestDtoId);
+        ItemDto createdItemDto = itemService.createItem(itemOwnerId, iItemDtoWithItemRequest);
+        Integer itemId = createdItemDto.getId();
+        items.add(itemId);
+
+
+        UserDto nextBookerUserDto = makeUserDto(bookingOwnerName, bookingOwnerName + "@email.com");
+        UserDto createdNextBookerDto = userService.createUser(nextBookerUserDto);
+        Integer nextBookerId = createdNextBookerDto.getId();
+        bookingOwners.add(nextBookerId);
+
+        LocalDateTime now = LocalDateTime.now();
+        BookingDto nextBookingDto = makeBookingDto(now.plusDays(1), now.plusDays(2), itemId);
+        BookingOutDto createdNextBooking = bookingService.createBooking(nextBookerId, nextBookingDto);
+        Integer nextBookingId = createdNextBooking.getId();
+        bookings.add(nextBookingId);
+        log.info("Booking created by user with id " + nextBookerId
+                + " for item with id " + itemId
+                + " owned by user with id " + itemOwnerId);
+
+
+        Integer pastBookerId = requesterDtoId;
+
+        BookingDto pastBookingDto = makeBookingDto(now.minusDays(2), now.minusDays(1), itemId);
+        BookingOutDto createdPastBooking = bookingService.createBooking(pastBookerId, pastBookingDto);
+        Integer pastBookingId = createdPastBooking.getId();
+        bookings.add(pastBookingId);
+        log.info("Booking created by user with id " + pastBookerId
+                + " for item with id " + itemId
+                + " owned by user with id " + itemOwnerId);
+
+
+        UserDto createdCommenterDto = createdRequesterDto;
+        User commenter = UserMapper.mapToUser(createdCommenterDto);
+        Comment comment = new Comment();
+        comment.setText("Comment");
+//        CommentItemDto commentItemDto = CommentMapper.mapToCommentItemDto(comment);
+        CommentItemDto createdCommentDto = itemService.createItemComment(commenter.getId(), itemId, comment);
+        Integer commentDtoId = createdCommentDto.getId();
+        comments.add(commentDtoId);
+
+//        ItemWithBookingDto itemDataWithBookingDto = new ItemWithBookingDto();
+//        itemDataWithBookingDto.setId(itemId);
+//        itemDataWithBookingDto.setName(createdItemDto.getName());
+//        itemDataWithBookingDto.setDescription(createdItemDto.getDescription());
+//        itemDataWithBookingDto.setAvailable(createdItemDto.getAvailable());
+//        itemDataWithBookingDto.setLastBooking(new LastBooking(pastBookingId,pastBookerId));
+//        itemDataWithBookingDto.setNextBooking(new NextBooking(nextBookingId,nextBookerId));
+//        itemDataWithBookingDto.setItemRequest(ItemRequestMapper.mapToItemRequest(createdItemRequestDto,UserMapper.mapToUser(createdRequesterDto)));
+//        itemDataWithBookingDto.setComments(List.of(createdCommentDto));
+
+
+        ItemDataWithBooking itemDataWithBooking = new ItemDataWithBooking();
+        itemDataWithBooking.setItemOwner(createdItemOwnerDto);
+        itemDataWithBooking.setRequester(createdRequesterDto);
+        itemDataWithBooking.setItem(createdItemDto);
+        itemDataWithBooking.setRequest(createdItemRequestDto);
+//        itemDataWithBooking.setItemWithBooking(itemDataWithBookingDto);
+        itemDataWithBooking.setCommentOwner(createdCommenterDto);
+        itemDataWithBooking.setComments(List.of(createdCommentDto));
+
+        return itemDataWithBooking;
+    }
+
+    private ItemData makeItemDataByAvailable(Boolean available) {
         String itemOwnersName = "itemOwner" + itemOwners.size();
         String itemName = "item" + items.size();
 
@@ -220,7 +335,6 @@ public class ItemServiceImplIntegrationTest {
         UserDto itemOwnerUserDto = userService.createUser(userDto);
         Integer itemOwnerId = itemOwnerUserDto.getId();//=3
         itemOwners.add(itemOwnerId);
-
 
         ItemDto itemDto;
         if (available) {
@@ -233,10 +347,101 @@ public class ItemServiceImplIntegrationTest {
         Integer itemId = itemDtoCreated.getId();//=2
         items.add(itemId);
 
-
-        ItemData data = new ItemData(itemOwnerUserDto, itemDtoCreated);
+        ItemData data;
+//      data = new ItemData(itemOwnerUserDto, itemDtoCreated);
+        data = new ItemData();
+        data.setItem(itemDtoCreated);
+        data.setItemOwner(itemOwnerUserDto);
         return data;
     }
+
+    private ItemDataWithRequest makeItemDataWithItemRequest(Boolean available) {
+        String itemOwnersName = "itemOwner" + itemOwners.size();
+        String requestOwnerName = "requestOwner" + requestOwners.size();
+        String itemName = "Item" + items.size();
+        String itemRequestName = "Item Request" + requests.size();
+
+        UserDto requesterUserDto = makeUserDto(requestOwnerName, requestOwnerName + "@email.com");
+        UserDto requesterDto = userService.createUser(requesterUserDto);
+        Integer requesterDtoId = requesterDto.getId();
+        requestOwners.add(requesterDtoId);
+
+        UserDto userDto = makeUserDto(itemOwnersName, itemOwnersName + "@email.com");
+        UserDto itemOwnerUserDto = userService.createUser(userDto);
+        Integer itemOwnerId = itemOwnerUserDto.getId();
+        itemOwners.add(itemOwnerId);
+
+
+        ItemRequest itemRequest = makeItemRequest(itemRequestName);
+        ItemRequestDto itemRequestDto = itemRequestService.create(requesterDtoId, itemRequest);
+        Integer itemRequestDtoId = itemRequestDto.getId();
+        requests.add(itemRequestDtoId);
+
+        ItemDto iItemDtoWithItemRequest = makeItemDtoWithItemRequest(itemName, itemName + "...", available, itemRequestDtoId);
+        ItemDto itemDto = itemService.createItem(itemOwnerId, iItemDtoWithItemRequest);
+        Integer itemId = itemDto.getId();
+        items.add(itemId);
+
+        ItemDataWithRequest itemDataWithRequest;
+//         itemDataWithRequest = makeItemDataWithRequest(itemOwnerUserDto, itemDto, requesterDto, itemRequestDto);
+        itemDataWithRequest = new ItemDataWithRequest();//(itemOwnerUserDto, itemDto, requesterDto, itemRequestDto);
+        itemDataWithRequest.setItemOwner(itemOwnerUserDto);
+        itemDataWithRequest.setItem(itemDto);
+        itemDataWithRequest.setRequester(requesterDto);
+        itemDataWithRequest.setRequest(itemRequestDto);
+        return itemDataWithRequest;
+    }
+
+    private static Comment makeComment(Integer id, String text, User author, LocalDateTime created) {
+        Comment comment = new Comment();
+        comment.setId(id);
+        comment.setText(text);
+        comment.setAuthor(author);
+        comment.setCreated(created);
+        return comment;
+    }
+
+    private BookingDto makeBookingDto(LocalDateTime start, LocalDateTime end, Integer itemId) {
+        BookingDto dto = new BookingDto();
+        dto.setStart(start);
+        dto.setEnd(end);
+        dto.setItemId(itemId);
+        return dto;
+    }
+
+
+    private static ItemDataWithRequest makeItemDataWithRequest(UserDto itemOwnerUserDto, ItemDto itemDto, UserDto requesterDto, ItemRequestDto itemRequestDto) {
+        ItemDataWithRequest itemDataWithRequest = new ItemDataWithRequest();//(itemOwnerUserDto, itemDto, requesterDto, itemRequestDto);
+        itemDataWithRequest.setItemOwner(itemOwnerUserDto);
+        itemDataWithRequest.setItem(itemDto);
+        itemDataWithRequest.setRequester(requesterDto);
+        itemDataWithRequest.setRequest(itemRequestDto);
+        return itemDataWithRequest;
+    }
+
+    private static ItemRequest makeItemRequest(String description) {
+        ItemRequest itemRequest = new ItemRequest();
+        itemRequest.setDescription(description);
+        return itemRequest;
+    }
+
+    private ItemDto makeItemDto(String name, String description, Boolean available) {
+        ItemDto dto = new ItemDto();
+        dto.setName(name);
+        dto.setDescription(description);
+        dto.setAvailable(available);
+        return dto;
+    }
+
+    private ItemDto makeItemDtoWithItemRequest(String name, String description, Boolean available, Integer requestId) {
+        ItemDto dto = new ItemDto();
+        dto.setName(name);
+        dto.setDescription(description);
+        dto.setAvailable(available);
+        dto.setRequestId(requestId);
+        return dto;
+    }
+
 
     private ItemDto makeAvailableItemDto(String name, String description) {
         ItemDto dto = new ItemDto();
@@ -295,16 +500,16 @@ public class ItemServiceImplIntegrationTest {
         );
     }
 
-    private static void assertItems(Item item, ItemDto itemDto) {
+    private static void assertItems(ItemDto itemDto, Item item) {
         assertAll(
-                () -> assertThat(item.getId(), equalTo(itemDto.getId())),
-                () -> assertThat(item.getName(), equalTo(itemDto.getName())),
-                () -> assertThat(item.getDescription(), equalTo(itemDto.getDescription())),
-                () -> assertThat(item.getAvailable(), equalTo(itemDto.getAvailable())),
-                () -> assertThat(item.getItemRequest().getId(), equalTo(itemDto.getRequestId()))
+                () -> assertThat(itemDto.getId(), equalTo(item.getId())),
+                () -> assertThat(itemDto.getName(), equalTo(item.getName())),
+                () -> assertThat(itemDto.getDescription(), equalTo(item.getDescription())),
+                () -> assertThat(itemDto.getAvailable(), equalTo(item.getAvailable())),
+                () -> assertThat(itemDto.getRequestId(), equalTo(item.getItemRequest().getId()))
         );
-
     }
+
 
     private static void assertUsers(User user, UserDto ownerDto) {
         assertAll(
@@ -322,6 +527,15 @@ public class ItemServiceImplIntegrationTest {
                 () -> assertThat(updatedItem.getAvailable(), equalTo(itemDtoForUpdate.getAvailable())),
                 () -> assertThat(updatedItem.getItemRequest(), equalTo(null)),
                 () -> assertThat(updatedItem.getOwner().getId(), equalTo(userId))
+        );
+    }
+
+    private static void assertItemsWithoutRequests(ItemDto itemDto, Item item) {
+        assertAll(
+                () -> assertThat(itemDto.getId(), equalTo(item.getId())),
+                () -> assertThat(itemDto.getName(), equalTo(item.getName())),
+                () -> assertThat(itemDto.getDescription(), equalTo(item.getDescription())),
+                () -> assertThat(itemDto.getAvailable(), equalTo(item.getAvailable()))
         );
     }
 

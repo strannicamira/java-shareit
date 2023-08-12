@@ -148,7 +148,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemDto> getUserItems(Integer userId) {
         log.info("Search all items by user id {}", userId);
-        List<Item> items = itemRepository.findByOwnerId(userId);
+        List<Item> items = itemRepository.findAllByOwnerId(userId);
 
         return ItemMapper.mapToItemDto(items);
     }
@@ -156,7 +156,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemWithBookingDto> getUserItemsWithBooking(Integer userId) {
         log.info("Search all items by user id {}", userId);
-        List<Item> items = itemRepository.findByOwnerId(userId);
+        List<Item> items = itemRepository.findAllByOwnerId(userId);
         List<ItemWithBookingDto> dtos = new ArrayList<>();
         for (Item item : items) {
             ItemWithBookingDto itemWithBookingDto = getItemWithBooking(userId, item.getId());
