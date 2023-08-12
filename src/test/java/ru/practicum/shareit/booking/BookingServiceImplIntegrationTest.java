@@ -697,9 +697,17 @@ public class BookingServiceImplIntegrationTest {
             assertThatBookingsEqual(gotBookingOutDto.get(i), bookings.get(i));
         }
     }
+    @Order(46)
+    @Test
+    void getUserBookings_whenStatusIsUNSUPPORTED_STATUS_thenThrowIllegalStateException() {
+        BookingData bookingData = makeBookingData();
+        Integer bookerId = bookingData.getBookingOwner().getId();
 
+        assertThrows(IllegalStateException.class, () -> bookingService.getUserBookings(bookerId, "UNSUPPORTED_STATUS", -20, -20));
 
-    @Order(41)
+    }
+
+    @Order(47)
     @Test
     void getUserBookings_viaBookingData_whenFromIsNegative_thenThrowIllegalStateException() {
         BookingData bookingData = makeBookingData();
@@ -708,7 +716,7 @@ public class BookingServiceImplIntegrationTest {
         assertThrows(IllegalStateException.class, () -> bookingService.getUserBookings(bookerId, BookingState.ALL.getName(), -20, 20));
     }
 
-    @Order(42)
+    @Order(48)
     @Test
     void getUserBookings_viaBookingData_whenSizeIsNegative_thenThrowIllegalStateException() {
         BookingData bookingData = makeBookingData();
@@ -739,7 +747,7 @@ public class BookingServiceImplIntegrationTest {
 //    }
 
 
-    @Order(45)
+    @Order(49)
     @Test
     void getUserBookings_viaBookingData_whenFromAndSizeIsNotNull_thenReturnList() {
 
