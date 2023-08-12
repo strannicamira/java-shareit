@@ -29,13 +29,86 @@ public class ItemServiceImpl implements ItemService {
     //    private final ItemRequestService requestService;
     private final ItemRequestRepository requestRepository;
 
+
+    @Override
+    @Transactional
+    public ItemDto createItem(Integer userId, ItemDto itemDto) {
+        log.info("Create item by user id {}", userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        Item item = ItemMapper.mapToItem(itemDto, user);
+
+        Integer requestId = itemDto.getRequestId();
+        if (requestId != null) {
+            ItemRequest itemRequest1 = requestRepository.findById(requestId)
+                    .orElseThrow(() -> new NotFoundException("Item request not found"));
+            item.setItemRequest(itemRequest1);
+        }
+
+        item = itemRepository.save(item);
+        return ItemMapper.mapToItemDto(item);
+    }
+
+    @Override
+    @Transactional
+    public CommentItemDto createItemComment(Integer userId, Integer itemId, Comment comment) {
+        log.info("Create comment by user id {} for item id {}", userId, itemId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
+
+        List<BookingOutDto> pastBookingOutDtos = bookingService.getItemsBookingsByUser(itemId, userId, BookingState.PAST.getName());
+
+        if (pastBookingOutDtos == null || pastBookingOutDtos.isEmpty()) {
+            throw new IllegalStateException("User don't have passed bookings for this item to put comment");
+        }
+
+        if (comment.getText() == null || comment.getText().isBlank()) {
+            throw new IllegalStateException("Empty comment");
+        }
+
+        comment.setItem(item);
+        comment.setAuthor(user);
+        comment.setCreated(LocalDateTime.now());
+        Comment commentSaved = commentRepository.save(comment);
+        return CommentMapper.mapToCommentItemDto(commentSaved);
+    }
+
+    @Override
+    @Transactional
+    public ItemDto updateItem(Integer userId, ItemDtoForUpdate itemDto, Integer itemId) {
+        log.info("Update item by id {}", itemId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
+
+        if (!item.getOwner().getId().equals(user.getId())) {
+            throw new IllegalStateException("Пользователь не владелец");
+        }
+
+        item.setId(itemId);
+        item.setName(itemDto.getName() == null || itemDto.getName().isBlank() ? item.getName() : itemDto.getName());
+        item.setDescription(itemDto.getDescription() == null || itemDto.getDescription().isBlank() ? item.getDescription() : itemDto.getDescription());
+        item.setAvailable(itemDto.getAvailable() == null ? item.getAvailable() : itemDto.getAvailable());
+        item.setOwner(user);
+
+        Item itemSaved = itemRepository.save(item);
+        return ItemMapper.mapToItemDto(itemSaved);
+    }
+
     @Override
     @Transactional
     public ItemDto getItem(Integer userId, Integer itemId) {
         log.info("Search item by item id {}", itemId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
-        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Item not found"));
         return ItemMapper.mapToItemDto(item);
     }
 
@@ -46,7 +119,8 @@ public class ItemServiceImpl implements ItemService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Item not found"));
 
         LastBooking lastBooking = null;
         NextBooking nextBooking = null;
@@ -104,77 +178,6 @@ public class ItemServiceImpl implements ItemService {
             foundItems = itemRepository.findAll(byAvailable.and(byTextInName.or(byTextInDescr)));
         }
         return ItemMapper.mapToItemDto(foundItems);
-    }
-
-
-    @Override
-    @Transactional
-    public ItemDto createItem(Integer userId, ItemDto itemDto) {
-        log.info("Create item by user id {}", userId);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-        Item item = ItemMapper.mapToItem(itemDto, user);
-
-        Integer requestId = itemDto.getRequestId();
-        if (requestId != null) {
-            ItemRequest itemRequest1 = requestRepository.findById(requestId).orElseThrow(() -> new NotFoundException("Item request not found"));
-            item.setItemRequest(itemRequest1);
-        }
-
-        item = itemRepository.save(item);
-        return ItemMapper.mapToItemDto(item);
-    }
-
-    @Override
-    @Transactional
-    public CommentItemDto createItemComment(Integer userId, Integer itemId, Comment comment) {
-        log.info("Create comment by user id {} for item id {}", userId, itemId);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-
-        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
-
-        List<BookingOutDto> pastBookingOutDtos = bookingService.getItemsBookingsByUser(itemId, userId, BookingState.PAST.getName());
-
-        if (pastBookingOutDtos == null || pastBookingOutDtos.isEmpty()) {
-            throw new IllegalStateException("User don't have passed bookings for this item to put comment");
-        }
-
-        if (comment.getText() == null || comment.getText().isBlank()) {
-            throw new IllegalStateException("Empty comment");
-        }
-
-        comment.setItem(item);
-        comment.setAuthor(user);
-        comment.setCreated(LocalDateTime.now());
-        Comment commentSaved = commentRepository.save(comment);
-        return CommentMapper.mapToCommentItemDto(commentSaved);
-    }
-
-    @Override
-    @Transactional
-    public ItemDto updateItem(Integer userId, ItemDtoForUpdate itemDto, Integer itemId) {
-        log.info("Update item by id {}", itemId);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-
-        Item item = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Item not found"));
-
-        if (!item.getOwner().getId().equals(user.getId())) {
-            throw new IllegalStateException("Пользователь не владелец");
-        }
-
-        item.setId(itemId);
-        item.setName(itemDto.getName() == null || itemDto.getName().isBlank() ? item.getName() : itemDto.getName());
-        item.setDescription(itemDto.getDescription() == null || itemDto.getDescription().isBlank() ? item.getDescription() : itemDto.getDescription());
-        item.setAvailable(itemDto.getAvailable() == null ? item.getAvailable() : itemDto.getAvailable());
-        item.setOwner(user);
-
-        Item itemSaved = itemRepository.save(item);
-        return ItemMapper.mapToItemDto(itemSaved);
     }
 
     @Override
