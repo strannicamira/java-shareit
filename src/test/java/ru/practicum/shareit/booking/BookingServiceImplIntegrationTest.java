@@ -520,7 +520,7 @@ public class BookingServiceImplIntegrationTest {
         BooleanExpression byEnd = QBooking.booking.end.after(now);
         BooleanExpression byState = byStart.and(byEnd);
 
-        List<Booking> bookings = (List<Booking>)bookingRepository.findAll(expression.and(byState),  SORT_BY_START_DESC);
+        List<Booking> bookings = (List<Booking>) bookingRepository.findAll(expression.and(byState), SORT_BY_START_DESC);
 
         for (Booking booking : bookings) {
             log.info("Get from repo booking by id " + booking.getId() + " booked by user id " + booking.getBooker().getId() +
@@ -552,7 +552,7 @@ public class BookingServiceImplIntegrationTest {
         BooleanExpression byEnd = QBooking.booking.end.before(LocalDateTime.now());
         BooleanExpression byState = byEnd;
 
-        List<Booking> bookings = (List<Booking>)bookingRepository.findAll(expression.and(byState),  SORT_BY_START_DESC);
+        List<Booking> bookings = (List<Booking>) bookingRepository.findAll(expression.and(byState), SORT_BY_START_DESC);
 
         for (Booking booking : bookings) {
             log.info("Get from repo booking by id " + booking.getId() + " booked by user id " + booking.getBooker().getId() +
@@ -584,7 +584,7 @@ public class BookingServiceImplIntegrationTest {
         BooleanExpression byStart = QBooking.booking.start.after(LocalDateTime.now());
         BooleanExpression byState = byStart;
 
-        List<Booking> bookings = (List<Booking>)bookingRepository.findAll(expression.and(byState),  SORT_BY_START_DESC);
+        List<Booking> bookings = (List<Booking>) bookingRepository.findAll(expression.and(byState), SORT_BY_START_DESC);
 
         for (Booking booking : bookings) {
             log.info("Get from repo booking by id " + booking.getId() + " booked by user id " + booking.getBooker().getId() +
@@ -596,7 +596,6 @@ public class BookingServiceImplIntegrationTest {
             assertThatBookingsEqual(gotBookingOutDto.get(i), bookings.get(i));
         }
     }
-
 
 
     @Order(44)
@@ -619,7 +618,7 @@ public class BookingServiceImplIntegrationTest {
 
         BooleanExpression byState = byStatus;
 
-        List<Booking> bookings = (List<Booking>)bookingRepository.findAll(expression.and(byState),  SORT_BY_START_DESC);
+        List<Booking> bookings = (List<Booking>) bookingRepository.findAll(expression.and(byState), SORT_BY_START_DESC);
 
         for (Booking booking : bookings) {
             log.info("Get from repo booking by id " + booking.getId() + " booked by user id " + booking.getBooker().getId() +
@@ -653,7 +652,7 @@ public class BookingServiceImplIntegrationTest {
 
         BooleanExpression byState = byStatus;
 
-        List<Booking> bookings = (List<Booking>)bookingRepository.findAll(expression.and(byState),  SORT_BY_START_DESC);
+        List<Booking> bookings = (List<Booking>) bookingRepository.findAll(expression.and(byState), SORT_BY_START_DESC);
 
         for (Booking booking : bookings) {
             log.info("Get from repo booking by id " + booking.getId() + " booked by user id " + booking.getBooker().getId() +
@@ -665,6 +664,7 @@ public class BookingServiceImplIntegrationTest {
             assertThatBookingsEqual(gotBookingOutDto.get(i), bookings.get(i));
         }
     }
+
     @Order(46)
     @Test
     void getUserBookings_whenStatusIsUNSUPPORTED_STATUS_thenThrowIllegalStateException() {
@@ -817,7 +817,7 @@ public class BookingServiceImplIntegrationTest {
 
         assertThrows(IllegalStateException.class, () -> bookingService.getItemsBookings(itemOwnerId, BookingState.ALL.getName(), from, size));
     }
-    
+
     @Order(60)
     @Test
     void getItemsBookingsByUser() {
