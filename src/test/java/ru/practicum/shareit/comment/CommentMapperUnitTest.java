@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
         webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class CommentMapperUnitTest {
-    //TODO: ?
+
     @Test
     void mapToCommentItemDto() {
         User user = new User(1, "John Doe", "some@email.com");

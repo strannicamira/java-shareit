@@ -22,12 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertAll;
         webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class ItemRequestMapperUnitTest {
-    //TODO: ?
+
     @Test
     void mapToItemRequestTest() {
-//        User user = new User(1, "John Doe", "some@email.com");
-//        ItemDto itemDto = makeItemDto("Something", "Some thing", Boolean.TRUE, null);
-//        List<ItemDto> itemDtos = Arrays.asList(itemDto);
+
         User user2 = new User(2, "Jane Doe", "jane@email.com");
         ItemRequestDto itemRequestDto = makeItemDtoRequest(1, "My first request", LocalDateTime.now());
 
@@ -42,13 +40,11 @@ public class ItemRequestMapperUnitTest {
 
     @Test
     void mapToItemRequestDtoTest() {
-//        User user1 = new User(1, "John Doe", "john@email.com");
         ItemDto itemDto = makeItemDto("Something", "Some thing", Boolean.TRUE, 1);
         List<ItemDto> itemDtos = Arrays.asList(itemDto);
 
         User user2 = new User(2, "Jane Doe", "jane@email.com");
         ItemRequest itemRequest = new ItemRequest(1, "My first request", user2, LocalDateTime.now());
-//        Item item = new Item(1, "Something", "Some thing", Boolean.TRUE, user1, itemRequest);
 
         ItemRequestDto itemRequestDto = ItemRequestMapper.mapToItemRequestDto(itemRequest, itemDtos);
 
@@ -89,5 +85,4 @@ public class ItemRequestMapperUnitTest {
         dto.setCreated(created);
         return dto;
     }
-
 }

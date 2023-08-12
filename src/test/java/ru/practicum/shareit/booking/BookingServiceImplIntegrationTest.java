@@ -18,10 +18,8 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.item.ItemDto;
 import ru.practicum.shareit.item.ItemDtoForUpdate;
-import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.ItemService;
 import ru.practicum.shareit.user.UserDto;
-import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.UserService;
 
 import java.time.LocalDateTime;
@@ -46,12 +44,9 @@ import static ru.practicum.shareit.util.Constants.SORT_BY_START_DESC;
 public class BookingServiceImplIntegrationTest {
 
     private final ItemService itemService;
-    private final ItemRepository itemRepository;
     private final UserService userService;
     private final BookingService bookingService;
-
     private final BookingRepository bookingRepository;
-    private final UserRepository userRepository;
 
     private static List<Integer> itemOwners;
     private static List<Integer> bookingOwners;
@@ -169,9 +164,6 @@ public class BookingServiceImplIntegrationTest {
         bookingOwners.add(bookingOwnerId);
 
         ItemDto itemDto = makeAvailableItemDto(itemName, itemName + "...");
-//        ItemDto itemDtoCreated = itemService.createItem(itemOwnerId, itemDto);
-//        Integer itemId = itemDtoCreated.getId();//=2
-//        items.add(itemId);
 
         LocalDateTime now = LocalDateTime.now();
         BookingDto bookingDto = makeBookingDto(now.plusDays(1), now.plusDays(2), MAGIC_NUMBER);
@@ -387,19 +379,6 @@ public class BookingServiceImplIntegrationTest {
 
     }
 
-//    @Order(23)
-//    @Test
-//    void updateBooking_viaBookingData_whenAvailableIsNull_thenThrowNullPointerException() {
-//        BookingData bookingData = makeBookingData();
-//        Integer bookingId = bookingData.getBookingOutDto().getId();
-//        Integer itemOwnerId = bookingData.getItemOwner().getId();
-//
-//
-//        assertThrows(NullPointerException.class, () -> bookingService.updateBooking(itemOwnerId, bookingId, null));
-//
-//    }
-
-
     @Order(24)
     @Test
     void updateBooking_viaBookingData_whenBookerIsNotItemOwner_thenThrowNotOwnerException() {
@@ -471,7 +450,6 @@ public class BookingServiceImplIntegrationTest {
         Integer bookerId = bookingData.getBookingOwner().getId();
         Integer itemOwnerId = bookingData.getItemOwner().getId();
 
-//        assertThrows(NotFoundException.class, () -> bookingService.getBooking(bookerId, bookingId));
         assertThrows(NotFoundException.class, () -> bookingService.getBooking(bookerId, MAGIC_NUMBER));
     }
 
@@ -502,7 +480,6 @@ public class BookingServiceImplIntegrationTest {
 
         BookingData bookingData = makeBookingData();
         Integer bookerId = bookingData.getBookingOwner().getId();
-//        BookingData bookingData2 = makeBookingDataByBookerId(bookerId);
 
         List<BookingOutDto> gotBookingOutDto = bookingService.getUserBookings(bookerId, BookingState.ALL.getName(), null, null);
 
@@ -530,7 +507,6 @@ public class BookingServiceImplIntegrationTest {
 
         BookingData bookingData = makeBookingData();
         Integer bookerId = bookingData.getBookingOwner().getId();
-//        BookingData bookingData2 = makeBookingDataByBookerId(bookerId);
 
         List<BookingOutDto> gotBookingOutDto = bookingService.getUserBookings(bookerId, BookingState.CURRENT.getName(), null, null);
 
@@ -541,8 +517,7 @@ public class BookingServiceImplIntegrationTest {
         BooleanExpression byBooker = QBooking.booking.booker.id.eq(bookerId);
         BooleanExpression expression = byBooker;
         LocalDateTime now = LocalDateTime.now();
-        BooleanExpression byStart = QBooking.booking.start.before(
-                now);
+        BooleanExpression byStart = QBooking.booking.start.before(now);
         BooleanExpression byEnd = QBooking.booking.end.after(now);
         BooleanExpression byState = byStart.and(byEnd);
 
@@ -565,7 +540,6 @@ public class BookingServiceImplIntegrationTest {
 
         BookingData bookingData = makeBookingData();
         Integer bookerId = bookingData.getBookingOwner().getId();
-//        BookingData bookingData2 = makeBookingDataByBookerId(bookerId);
 
         List<BookingOutDto> gotBookingOutDto = bookingService.getUserBookings(bookerId, BookingState.PAST.getName(), null, null);
 
@@ -576,7 +550,6 @@ public class BookingServiceImplIntegrationTest {
         BooleanExpression byBooker = QBooking.booking.booker.id.eq(bookerId);
         BooleanExpression expression = byBooker;
         LocalDateTime now = LocalDateTime.now();
-//        BooleanExpression byStart = QBooking.booking.start.before(now);
         BooleanExpression byEnd = QBooking.booking.end.before(LocalDateTime.now());
         BooleanExpression byState = byEnd;
 
@@ -599,7 +572,6 @@ public class BookingServiceImplIntegrationTest {
 
         BookingData bookingData = makeBookingData();
         Integer bookerId = bookingData.getBookingOwner().getId();
-//        BookingData bookingData2 = makeBookingDataByBookerId(bookerId);
 
         List<BookingOutDto> gotBookingOutDto = bookingService.getUserBookings(bookerId, BookingState.FUTURE.getName(), null, null);
 
@@ -611,7 +583,6 @@ public class BookingServiceImplIntegrationTest {
         BooleanExpression expression = byBooker;
         LocalDateTime now = LocalDateTime.now();
         BooleanExpression byStart = QBooking.booking.start.after(LocalDateTime.now());
-//        BooleanExpression byEnd = QBooking.booking.end.before(LocalDateTime.now());
         BooleanExpression byState = byStart;
 
         List<Booking> bookings = (List<Booking>)bookingRepository.findAll(expression.and(byState),  SORT_BY_START_DESC);
@@ -635,7 +606,6 @@ public class BookingServiceImplIntegrationTest {
 
         BookingData bookingData = makeBookingData();
         Integer bookerId = bookingData.getBookingOwner().getId();
-//        BookingData bookingData2 = makeBookingDataByBookerId(bookerId);
 
         List<BookingOutDto> gotBookingOutDto = bookingService.getUserBookings(bookerId, BookingState.WAITING.getName(), null, null);
 
@@ -670,7 +640,6 @@ public class BookingServiceImplIntegrationTest {
 
         BookingData bookingData = makeBookingData();
         Integer bookerId = bookingData.getBookingOwner().getId();
-//        BookingData bookingData2 = makeBookingDataByBookerId(bookerId);
 
         List<BookingOutDto> gotBookingOutDto = bookingService.getUserBookings(bookerId, BookingState.REJECTED.getName(), null, null);
 
@@ -725,28 +694,6 @@ public class BookingServiceImplIntegrationTest {
         assertThrows(IllegalStateException.class, () -> bookingService.getUserBookings(bookerId, BookingState.ALL.getName(), 0, -20));
     }
 
-//    @Order(43)
-//    @Test
-//    void getUserBookings_viaBookingData_whenFromIsNull_thenThrowIllegalStateException() {
-//        BookingData bookingData = makeBookingData();
-//        Integer bookerId = bookingData.getBookingOwner().getId();
-//
-//        assertThrows(IllegalStateException.class, () -> bookingService.getUserBookings(bookerId, BookingState.ALL.getName(), null, 20));
-    //TODO:
-//    }
-
-//    @Order(44)
-//    @Test
-//    void getUserBookings_viaBookingData_whenSizeIsNull_thenThrowIllegalStateException() {
-//        BookingData bookingData = makeBookingData();
-//        Integer bookerId = bookingData.getBookingOwner().getId();
-//
-//        assertThrows(IllegalStateException.class, () -> bookingService.getUserBookings(bookerId, BookingState.ALL.getName(), 0, null));
-
-//        TODO:
-//    }
-
-
     @Order(49)
     @Test
     void getUserBookings_viaBookingData_whenFromAndSizeIsNotNull_thenReturnList() {
@@ -785,7 +732,6 @@ public class BookingServiceImplIntegrationTest {
         BookingData bookingData = makeBookingData();
         Integer bookerId = bookingData.getBookingOwner().getId();
         Integer itemOwnerId = bookingData.getItemOwner().getId();
-//        BookingData bookingData2 = makeBookingDataByBookerId(bookerId);
 
         List<BookingOutDto> dtos = bookingService
                 .getItemsBookings(itemOwnerId, BookingState.ALL.getName(), null, null);
@@ -819,7 +765,6 @@ public class BookingServiceImplIntegrationTest {
         BookingData bookingData = makeBookingData();
         Integer bookerId = bookingData.getBookingOwner().getId();
         Integer itemOwnerId = bookingData.getItemOwner().getId();
-//        BookingData bookingData2 = makeBookingDataByBookerId(bookerId);
 
         Integer from = 0;
         Integer size = 20;
@@ -873,23 +818,7 @@ public class BookingServiceImplIntegrationTest {
 
         assertThrows(IllegalStateException.class, () -> bookingService.getItemsBookings(itemOwnerId, BookingState.ALL.getName(), from, size));
     }
-
-//    @Order(54)
-//    @Test
-//    void getItemBookings_viaBookingData_whenFromIsNull_thenThrowIllegalStateException() {
-//
-//        //TODO:
-//
-//    }
-//
-//    @Order(55)
-//    @Test
-//    void getItemBookings_viaBookingData_whenSizeIsNull_thenThrowIllegalStateException() {
-//
-//        //TODO:
-//    }
-
-
+    
     @Order(60)
     @Test
     void getItemsBookingsByUser() {
@@ -981,8 +910,6 @@ public class BookingServiceImplIntegrationTest {
         Integer bookingId = booking.getId();//=2
         bookings.add(bookingId);
 
-//        addToLists(itemOwnerId, bookingOwnerId, itemId, bookingId);
-
         BookingData bookingData = new BookingData(booking, itemDtoCreated, itemOwnerUserDto, bookingOwnerUserDto);
         return bookingData;
     }
@@ -992,10 +919,6 @@ public class BookingServiceImplIntegrationTest {
         UserDto userDto1 = makeUserDto("Doe" + userId, "user" + userId + "@email.com");
         UserDto itemOwnerUserDto1 = userService.createUser(userDto1);
         Integer userId1 = itemOwnerUserDto1.getId();//=3
-
-//        UserDto userDto2 = makeUserDto("Four Doe", "four@email.com");
-//        UserDto bookingOwnerUserDto2 = userService.createUser(userDto2);
-//        Integer userId2 = bookingOwnerUserDto2.getId();//=4
 
         ItemDto itemDto = makeAvailableItemDto("Twothing", "Two thing");
         ItemDto itemDtoCreated = itemService.createItem(userId1, itemDto);
@@ -1019,10 +942,6 @@ public class BookingServiceImplIntegrationTest {
         UserDto userDto1 = makeUserDto(itemOwnersName, itemOwnersName + "@email.com");
         UserDto itemOwnerUserDto1 = userService.createUser(userDto1);
         Integer userId1 = itemOwnerUserDto1.getId();//=3
-
-//        UserDto userDto2 = makeUserDto(bookingOwnerName, bookingOwnerName + "@email.com");
-//        UserDto bookingOwnerUserDto2 = userService.createUser(userDto2);
-//        Integer userId2 = bookingOwnerUserDto2.getId();//=4
 
         ItemDto itemDto = makeAvailableItemDto(itemName, itemName + "...");
         ItemDto itemDtoCreated = itemService.createItem(userId1, itemDto);

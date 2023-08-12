@@ -41,30 +41,20 @@ public class UserServiceImplUnitTest {
         // then
         UserDto savedUserDto = userService.createUser(userDto);
 
-
         assertThat(savedUserDto.getId(), equalTo(expectedUserDto.getId()));
         assertThat(savedUserDto.getName(), equalTo(expectedUserDto.getName()));
         assertThat(savedUserDto.getEmail(), equalTo(expectedUserDto.getEmail()));
-
-//        assertThat(savedUserDto, equalTo(expectedUserDto));
     }
 
     @Test
     void updateUser_whenIdDoesntExist_thenThrowNotFoundException() {
         UserService userService = new UserServiceImpl(mockUserRepository);
-
         Integer userId = 2;
         UserDto userDtoToUpdate = makeUserDto("Up Date", "update@email.com");
-//        User savedMockedUser = new User(1, "Up Date", "update@email.com");
         Mockito
                 .when(mockUserRepository.findById(anyInt())).thenThrow(NotFoundException.class);
 
-
-        UserDto userDtoToSave = makeUserDto("John Doe", "some@email.com");
-        //userService.updateUser(userId, userDtoToSave);
-
         assertThrows(NotFoundException.class, () -> userService.updateUser(userId, userDtoToUpdate));
-
     }
 
 

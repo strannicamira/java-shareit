@@ -13,10 +13,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.ItemDto;
-import ru.practicum.shareit.item.ItemDtoForUpdate;
-import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.ItemService;
-import ru.practicum.shareit.user.*;
+import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserDto;
+import ru.practicum.shareit.user.UserMapper;
+import ru.practicum.shareit.user.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,8 +40,6 @@ public class ItemRequestServiceImplIntegrationTest {
 
     private final ItemRequestService itemRequestService;
     private final ItemRequestRepository itemRequestRepository;
-    private final UserRepository userRepository;
-    private final ItemRepository itemRepository;
     private final ItemService itemService;
     private final UserService userService;
 
@@ -66,7 +65,6 @@ public class ItemRequestServiceImplIntegrationTest {
     @Order(2)
     @Test
     void create_whenUserIdDoesNotExist_thenThrowIllegalStateException() {
-
         ItemRequestData itemRequestData = makeItemRequestData();
         ItemRequestDto itemRequestDto = itemRequestData.getItemRequestDto();
         UserDto userDto = itemRequestData.getRequestOwner();
@@ -95,12 +93,6 @@ public class ItemRequestServiceImplIntegrationTest {
     @Order(4)
     @Test
     void getListOfItemRequestsByUserId_whenUserIdDoesNotExist_thenThrowIllegalStateException() {
-
-//        ItemRequestData itemRequestData = makeItemRequestData();
-//        Integer requsterId = itemRequestData.getRequestOwner().getId();
-//        Integer itemOwnerId = itemRequestData.getItemOwner().getId();
-
-
         assertThrows(NotFoundException.class, () -> itemRequestService.get(MAGIC_NUMBER));
     }
 
@@ -122,12 +114,6 @@ public class ItemRequestServiceImplIntegrationTest {
     @Order(6)
     @Test
     void getItemRequestById_whenUserIdDoesNotExist_thenThrowIllegalStateException() {
-
-//        ItemRequestData itemRequestData = makeItemRequestData();
-//        Integer requsterId = itemRequestData.getRequestOwner().getId();
-//        Integer itemOwnerId = itemRequestData.getItemOwner().getId();
-
-
         assertThrows(NotFoundException.class, () -> itemRequestService.get(MAGIC_NUMBER, MAGIC_NUMBER));
     }
 
@@ -139,7 +125,6 @@ public class ItemRequestServiceImplIntegrationTest {
         ItemRequestData itemRequestData = makeItemRequestData();
         Integer requsterId = itemRequestData.getRequestOwner().getId();
         Integer itemOwnerId = itemRequestData.getItemOwner().getId();
-
 
         assertThrows(NotFoundException.class, () -> itemRequestService.get(requsterId, MAGIC_NUMBER));
     }
@@ -167,12 +152,6 @@ public class ItemRequestServiceImplIntegrationTest {
     @Order(9)
     @Test
     void getAllListOfItemRequestsByUserId_whenUserIdDoesNotExist_thenThrowIllegalStateException() {
-
-//        ItemRequestData itemRequestData = makeItemRequestData();
-//        Integer requsterId = itemRequestData.getRequestOwner().getId();
-//        Integer itemOwnerId = itemRequestData.getItemOwner().getId();
-
-
         assertThrows(NotFoundException.class, () -> itemRequestService.get(MAGIC_NUMBER, -10, -10));
     }
 
@@ -180,7 +159,6 @@ public class ItemRequestServiceImplIntegrationTest {
     @Order(10)
     @Test
     void getAllListOfItemRequestsByUserId_whenFromIsNegative_thenThrowIllegalStateException() {
-
         ItemRequestData itemRequestData = makeItemRequestData();
         Integer requsterId = itemRequestData.getRequestOwner().getId();
         Integer itemOwnerId = itemRequestData.getItemOwner().getId();
@@ -236,9 +214,6 @@ public class ItemRequestServiceImplIntegrationTest {
         ItemRequest itemRequest = makeItemRequest("Item request");
         ItemRequestDto itemRequestDto = itemRequestService.create(requesterDtoId, itemRequest);
 
-        ItemDto itemDto = makeItemDto("Something", "Some thing");
-        Integer itemRequestDtoId = itemRequestDto.getId();
-
         ItemRequestData itemRequestData = new ItemRequestData();
         itemRequestData.setItemRequestDto(itemRequestDto);
         itemRequestData.setRequestOwner(requesterDto);
@@ -247,7 +222,6 @@ public class ItemRequestServiceImplIntegrationTest {
     }
 
     private ItemRequestData makeItemRequestData() {
-
         UserDto requesterUserDto = makeUserDto("John Doe", "john@email.com");
         UserDto requesterDto = userService.createUser(requesterUserDto);
         Integer requesterDtoId = requesterDto.getId();
@@ -291,20 +265,6 @@ public class ItemRequestServiceImplIntegrationTest {
         return dto;
     }
 
-    private UserDto makeUserDtoByName(String name) {
-        UserDto dto = new UserDto();
-        dto.setName(name);
-        return dto;
-    }
-
-    private ItemDto makeItemDto(String name, String description) {
-        ItemDto dto = new ItemDto();
-        dto.setName(name);
-        dto.setDescription(description);
-        dto.setAvailable(Boolean.TRUE);
-        return dto;
-    }
-
     private ItemDto makeItemDtoForRequest(String name, String description, Integer requestId) {
         ItemDto dto = new ItemDto();
         dto.setName(name);
@@ -313,14 +273,4 @@ public class ItemRequestServiceImplIntegrationTest {
         dto.setRequestId(requestId);
         return dto;
     }
-
-
-    private ItemDtoForUpdate makeItemDtoForUpdate(String name, String description, Boolean available) {
-        ItemDtoForUpdate dto = new ItemDtoForUpdate();
-        dto.setName(name);
-        dto.setDescription(description);
-        dto.setAvailable(available);
-        return dto;
-    }
-
 }

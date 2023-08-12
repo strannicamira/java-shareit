@@ -75,38 +75,6 @@ class ItemRequestControllerTest {
 
     }
 
-    private static ItemRequestDto makeItemRequestDto(Integer id, String description, LocalDateTime created) {
-        ItemRequestDto dto = new ItemRequestDto();
-        dto.setId(id);
-        dto.setDescription(description);
-        dto.setCreated(created);
-        return dto;
-    }
-
-    private static ItemRequest makeItemRequest() {
-        ItemRequest itemRequest = new ItemRequest();
-        itemRequest.setDescription("My first request");
-        return itemRequest;
-    }
-
-    private ItemDto makeItemDto(String name, String description, Boolean available, Integer requestId) {
-        ItemDto dto = new ItemDto();
-        dto.setName(name);
-        dto.setDescription(description);
-        dto.setAvailable(available);
-        dto.setRequestId(requestId);
-        return dto;
-    }
-
-    private static ItemRequestDto makeItemRequestDto(Integer id, String description, LocalDateTime created, List<ItemDto> itemDtos) {
-        ItemRequestDto dto = new ItemRequestDto();
-        dto.setId(id);
-        dto.setDescription(description);
-        dto.setCreated(created);
-        dto.setItems(itemDtos);
-        return dto;
-    }
-
     @Order(1)
     @Test
     void createItemRequest() throws Exception {
@@ -124,7 +92,6 @@ class ItemRequestControllerTest {
                 .andExpect(jsonPath("$.created", is(createdItemRequestDto.getCreated().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))))
                 .andExpect(jsonPath("$.description", is(createdItemRequestDto.getDescription())));
     }
-
 
     @Order(2)
     @Test
@@ -185,6 +152,29 @@ class ItemRequestControllerTest {
                 .andExpect(jsonPath("$[0].items[0].description", is(gotItemRequestDto.getItems().get(0).getDescription())))
                 .andExpect(jsonPath("$[0].items[0].available", is(gotItemRequestDto.getItems().get(0).getAvailable())))
                 .andExpect(jsonPath("$[0].items[0].requestId", is(gotItemRequestDto.getItems().get(0).getRequestId())));
+    }
+
+    private static ItemRequestDto makeItemRequestDto(Integer id, String description, LocalDateTime created) {
+        ItemRequestDto dto = new ItemRequestDto();
+        dto.setId(id);
+        dto.setDescription(description);
+        dto.setCreated(created);
+        return dto;
+    }
+
+    private static ItemRequest makeItemRequest() {
+        ItemRequest itemRequest = new ItemRequest();
+        itemRequest.setDescription("My first request");
+        return itemRequest;
+    }
+
+    private static ItemRequestDto makeItemRequestDto(Integer id, String description, LocalDateTime created, List<ItemDto> itemDtos) {
+        ItemRequestDto dto = new ItemRequestDto();
+        dto.setId(id);
+        dto.setDescription(description);
+        dto.setCreated(created);
+        dto.setItems(itemDtos);
+        return dto;
     }
 
 }

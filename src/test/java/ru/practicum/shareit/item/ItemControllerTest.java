@@ -46,7 +46,7 @@ class ItemControllerTest {
     @InjectMocks
     private ItemController controller;
 
-    private  ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     private MockMvc mockMvc;
 
@@ -61,19 +61,13 @@ class ItemControllerTest {
 
     @BeforeEach
     void setUp() {
-//        mockMvc = MockMvcBuilders
-//                .standaloneSetup(controller)
-//                .build();
 
-
-        ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().build();
+        objectMapper = Jackson2ObjectMapperBuilder.json().build();
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
-        ObjectMapper mapper = new ObjectMapper();
         SimpleDateFormat df = new SimpleDateFormat(TIME_PATTERN);
-        mapper.setDateFormat(df);
+        objectMapper.setDateFormat(df);
 
-//        this.boardProcessorController = new MyController();
         this.mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
                 .setControllerAdvice(ErrorHandler.class)
@@ -176,7 +170,7 @@ class ItemControllerTest {
     @Order(5)
     @Test
     public void getUserItemsByText() throws Exception {
-        when(itemService.getUserItems(anyInt(),anyString()))
+        when(itemService.getUserItems(anyInt(), anyString()))
                 .thenReturn(List.of(createdItemDto));
 
         mockMvc.perform(get("/items/search")
@@ -209,11 +203,7 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$.id", is(createdComment.getId()), Integer.class))
                 .andExpect(jsonPath("$.text", is(createdComment.getText())))
                 .andExpect(jsonPath("$.authorName", is(createdComment.getAuthorName())))
-                .andExpect(jsonPath("$.created".toString(),
-                        is(createdComment.getCreated()
-                                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-//                                .format(DateTimeFormatter.ofPattern(TIME_PATTERN))
-                                .toString())));
+                .andExpect(jsonPath("$.created".toString(), is(createdComment.getCreated().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).toString())));
 
 
     }
@@ -258,9 +248,6 @@ class ItemControllerTest {
         dto.setText(comment.getText());
         dto.setAuthorName(authorName);
         dto.setCreated(LocalDateTime.now());
-//        dto.setCreated(LocalDateTime.now().plusDays(3).truncatedTo(ChronoUnit.NANOS));
-
-//        log.info("getCreated = " + dto.getCreated().toString());
         return dto;
     }
 }

@@ -23,11 +23,11 @@ import java.util.List;
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
-    private final UserRepository userRepository;
+    private final UserRepository userRepository;//TODO
     private final BookingService bookingService;
-    private final CommentRepository commentRepository;
+    private final CommentRepository commentRepository;//TODO
     //    private final ItemRequestService requestService;
-    private final ItemRequestRepository requestRepository;
+    private final ItemRequestRepository requestRepository;//TODO
 
 
     @Override

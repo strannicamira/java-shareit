@@ -33,6 +33,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static ru.practicum.shareit.util.Constants.MAGIC_NUMBER;
 
 @Slf4j
 @Transactional
@@ -143,12 +144,8 @@ public class ItemServiceImplIntegrationTest {
         ItemData itemData = makeItemDataByAvailable(true);
         Integer itemOwnerId = itemData.getItemOwner().getId();
         Integer itemId = itemData.getItem().getId();
-//
-//        UserDto userDto = new UserDto(itemOwnerId+1, "NotFound",  "notfound@email.com");
-//        Integer userDtoId = userDto.getId();
-//        notOwners.add(userDtoId);
 
-        assertThrows(NotFoundException.class, () -> itemService.getItem(itemOwnerId + 1, itemId));
+        assertThrows(NotFoundException.class, () -> itemService.getItem(MAGIC_NUMBER, itemId));
     }
 
     @Order(32)
@@ -158,16 +155,11 @@ public class ItemServiceImplIntegrationTest {
         Integer itemOwnerId = itemData.getItemOwner().getId();
         Integer itemId = itemData.getItem().getId();
 
-//        UserDto userDto = new UserDto(itemOwnerId+1, "NotFound",  "notfound@email.com");
-//        Integer userDtoId = userDto.getId();
-//        notOwners.add(userDtoId);
-
-        assertThrows(NotFoundException.class, () -> itemService.getItem(itemOwnerId, itemId + 1));
+        assertThrows(NotFoundException.class, () -> itemService.getItem(itemOwnerId, MAGIC_NUMBER));
     }
 
 
     @Order(40)
-//    @Disabled
     @Test
     void getUserItemsWithBooking() {
         ItemDataWithBooking itemData =  makeItemWithBooking(true);
@@ -184,7 +176,6 @@ public class ItemServiceImplIntegrationTest {
 
 
     @Order(50)
-//    @Disabled
     @Test
     void getUserItems() {
         ItemData itemData = makeItemDataByAvailable(true);

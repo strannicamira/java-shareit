@@ -8,8 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.*;
-import ru.practicum.shareit.user.*;
+import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,6 @@ public class ItemRequestServiceImplUnitTest {
     private final UserRepository mockUserRepository;
 
 
-
     @Test
     void getAllListOfItemRequestsByUserId_whenUserDoesnotExist_thenThrowNotFoundException() {
         ItemRequestService itemRequestService = new ItemRequestServiceImpl(mockItemRequestRepository, mockUserRepository, mockItemRepository);
@@ -45,9 +45,6 @@ public class ItemRequestServiceImplUnitTest {
         Integer size = 10;
         Mockito
                 .when(mockUserRepository.findById(anyInt())).thenThrow(NotFoundException.class);
-
-//        Mockito
-//                .when(mockItemRepository.findById(anyInt())).thenThrow(NotFoundException.class);
 
         assertThrows(NotFoundException.class, () -> itemRequestService.get(user.getId(), from, size));
     }
@@ -61,9 +58,6 @@ public class ItemRequestServiceImplUnitTest {
         Mockito
                 .when(mockUserRepository.findById(anyInt())).thenReturn(Optional.of(user));
 
-//        Mockito
-//                .when(mockItemRepository.findById(anyInt())).thenThrow(NotFoundException.class);
-
         assertThrows(IllegalStateException.class, () -> itemRequestService.get(user.getId(), from, size));
     }
 
@@ -75,9 +69,6 @@ public class ItemRequestServiceImplUnitTest {
         Integer size = -10;
         Mockito
                 .when(mockUserRepository.findById(anyInt())).thenReturn(Optional.of(user));
-
-//        Mockito
-//                .when(mockItemRepository.findById(anyInt())).thenThrow(NotFoundException.class);
 
         assertThrows(IllegalStateException.class, () -> itemRequestService.get(user.getId(), from, size));
     }
@@ -91,14 +82,9 @@ public class ItemRequestServiceImplUnitTest {
         Mockito
                 .when(mockUserRepository.findById(anyInt())).thenReturn(Optional.of(user));
 
-//        Mockito
-//                .when(mockItemRepository.findById(anyInt())).thenThrow(NotFoundException.class);
-
         List<ItemRequestDto> itemRequestDtos = itemRequestService.get(user.getId(), from, size);
-//        assertThrows(IllegalStateException.class, () -> itemRequestDtos);
 
         assertThat(new ArrayList<>(), equalTo(itemRequestDtos));
-
     }
 
 
@@ -111,14 +97,9 @@ public class ItemRequestServiceImplUnitTest {
         Mockito
                 .when(mockUserRepository.findById(anyInt())).thenReturn(Optional.of(user));
 
-//        Mockito
-//                .when(mockItemRepository.findById(anyInt())).thenThrow(NotFoundException.class);
-
         List<ItemRequestDto> itemRequestDtos = itemRequestService.get(user.getId(), from, size);
-//        assertThrows(IllegalStateException.class, () -> itemRequestDtos);
 
         assertThat(new ArrayList<>(), equalTo(itemRequestDtos));
-
     }
 
 }
