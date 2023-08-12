@@ -18,6 +18,7 @@ import ru.practicum.shareit.booking.LastBooking;
 import ru.practicum.shareit.booking.NextBooking;
 import ru.practicum.shareit.comment.Comment;
 import ru.practicum.shareit.comment.CommentItemDto;
+import ru.practicum.shareit.exception.ErrorHandler;
 
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -56,12 +57,13 @@ class ItemControllerTest {
     private ItemWithBookingDto itemWithBookingDto;
     private Comment comment;
     private CommentItemDto createdComment;
+    private ItemDto itemDtoToCreateWithoutAvailable;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders
-                .standaloneSetup(controller)
-                .build();
+//        mockMvc = MockMvcBuilders
+//                .standaloneSetup(controller)
+//                .build();
 
 
         ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().build();
@@ -74,15 +76,18 @@ class ItemControllerTest {
 //        this.boardProcessorController = new MyController();
         this.mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
+                .setControllerAdvice(ErrorHandler.class)
                 .build();
 
-        itemDtoToCreate = makeItemDto("Item", "Item...");
+        itemDtoToCreate = makeItemDto("Item", "Item...", Boolean.TRUE);
         createdItemDto = new ItemDto(1, "Item", "Item...", Boolean.TRUE, null);
         itemDtoToUpdate = new ItemDtoForUpdate(1, "UpdateItem", "UpdateItem...", Boolean.TRUE);
         updatedItemDto = new ItemDto(1, "UpdateItem", "UpdateItem...", Boolean.TRUE, null);
         itemWithBookingDto = makeItemWithBookingDto(createdItemDto);
         comment = makeComment("Comment");
         createdComment = makeCommentItemDto(1, comment, "User Name");
+        itemDtoToCreateWithoutAvailable = makeItemDto("Item", "Item...", null);
+
     }
 
 
@@ -104,7 +109,6 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$.description", is(createdItemDto.getDescription())))
                 .andExpect(jsonPath("$.available", is(createdItemDto.getAvailable())));
     }
-
 
     @Order(2)
     @Test
@@ -223,11 +227,11 @@ class ItemControllerTest {
     }
 
 
-    private ItemDto makeItemDto(String name, String description) {
+    private ItemDto makeItemDto(String name, String description, Boolean available) {
         ItemDto dto = new ItemDto();
         dto.setName(name);
         dto.setDescription(description);
-        dto.setAvailable(Boolean.TRUE);
+        dto.setAvailable(available);
         return dto;
     }
 
