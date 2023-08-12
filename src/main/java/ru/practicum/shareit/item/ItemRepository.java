@@ -7,9 +7,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ItemRepository extends JpaRepository<Item, Integer>, QuerydslPredicateExecutor<Item> {
-    List<Item> findByOwnerId(Integer userId);
+    List<Item> findAllByOwnerId(Integer userId);
 
     Optional<Item> findByOwnerIdAndId(Integer userId, Integer itemId);
 
     void deleteByOwnerIdAndId(Integer userId, Integer itemId);
+
+    List<Item> findAllByItemRequestId(Integer id);
 }

@@ -1,8 +1,9 @@
 package ru.practicum.shareit.booking;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
+//@ToString
+//@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum BookingStatus {
     WAITING(0, "WAITING"),
     APPROVED(1, "APPROVED"),
@@ -17,6 +18,7 @@ public enum BookingStatus {
         this.name = name;
     }
 
+    @JsonCreator
     public String getName() {
         return name;
     }
@@ -25,13 +27,9 @@ public enum BookingStatus {
         return id;
     }
 
+    @Override
     @JsonCreator
-    public static BookingStatus forValues(@JsonProperty("id") Integer id) {
-        for (BookingStatus status : BookingStatus.values()) {
-            if (status.id.equals(id)) {
-                return status;
-            }
-        }
-        return null;
+    public String toString() {
+        return getName();
     }
 }

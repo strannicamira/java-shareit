@@ -14,28 +14,28 @@ import java.util.List;
 @Slf4j
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional(readOnly = true)
     public List<UserDto> getAllUsers() {
         log.info("Search all users");
-        return UserMapper.mapToUserDto(repository.findAll());
+        return UserMapper.mapToUserDto(userRepository.findAll());
     }
 
     @Override
     @Transactional
     public UserDto getUser(Integer userId) {
         log.info("Search user by id {}", userId);
-        User user = repository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
         return UserMapper.mapToUserDto(user);
     }
 
     @Override
     @Transactional
-    public UserDto saveUser(UserDto userDto) {
+    public UserDto createUser(UserDto userDto) {
         log.info("Create user");
-        User user = repository.save(UserMapper.mapToUser(userDto));
+        User user = userRepository.save(UserMapper.mapToUser(userDto));
         return UserMapper.mapToUserDto(user);
     }
 
@@ -44,12 +44,14 @@ public class UserServiceImpl implements UserService {
     public UserDto updateUser(Integer userId, UserDto userDto) {
         log.info("Update user by id {}", userId);
 
-        User userById = repository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+        //TODO: extract method
+        User userById = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found user by id to update: " + userId));
 
+        //TODO: extract method
         userById.setName(userDto.getName() == null || userDto.getName().isBlank() ? userById.getName() : userDto.getName());
         userById.setEmail(userDto.getEmail() == null || userDto.getEmail().isBlank() ? userById.getEmail() : userDto.getEmail());
 
-        User savedUser = repository.save(userById);
+        User savedUser = userRepository.saveAndFlush(userById);
 
         return UserMapper.mapToUserDto(savedUser);
     }
@@ -58,6 +60,6 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteUser(Integer userId) {
         log.info("Delete user by id {}", userId);
-        repository.deleteById(userId);
+        userRepository.deleteById(userId);
     }
 }

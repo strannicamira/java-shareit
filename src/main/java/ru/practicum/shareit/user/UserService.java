@@ -7,7 +7,7 @@ public interface UserService {
 
     UserDto getUser(Integer userId);
 
-    UserDto saveUser(UserDto userDto);
+    UserDto createUser(UserDto userDto);
 
     UserDto updateUser(Integer userId, UserDto userDto);
 

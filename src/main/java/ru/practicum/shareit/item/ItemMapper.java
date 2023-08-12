@@ -13,12 +13,12 @@ public class ItemMapper {
     @Valid
     public static Item mapToItem(ItemDto itemDto, User user) {
         Item item = new Item();
-        item.setId(itemDto.getId());
+//        item.setId(itemDto.getId());
         item.setName(itemDto.getName());
         item.setDescription(itemDto.getDescription());
         item.setAvailable(itemDto.getAvailable());
         item.setOwner(user);
-        item.setItemRequest(itemDto.getItemRequest());
+//        item.setItemRequest(itemDto.getItemRequest());
         return item;
     }
 
@@ -28,7 +28,7 @@ public class ItemMapper {
                 item.getName(),
                 item.getDescription(),
                 item.getAvailable(),
-                item.getItemRequest()
+                item.getItemRequest() != null ? item.getItemRequest().getId() : null
         );
     }
 

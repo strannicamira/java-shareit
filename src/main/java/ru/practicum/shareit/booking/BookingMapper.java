@@ -6,8 +6,6 @@ import ru.practicum.shareit.item.Item;
 import ru.practicum.shareit.user.User;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BookingMapper {
@@ -33,13 +31,4 @@ public class BookingMapper {
                 booking.getStatus()
         );
     }
-
-    public static List<BookingDto> mapToBookingDto(Iterable<Booking> bookings) {
-        List<BookingDto> dtos = new ArrayList<>();
-        for (Booking booking : bookings) {
-            dtos.add(mapToBookingDto(booking));
-        }
-        return dtos;
-    }
-
 }

@@ -3,6 +3,8 @@ package ru.practicum.shareit.booking;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,11 +17,11 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static ru.practicum.shareit.util.Constants.SORT_BY_ID_DESC;
-import static ru.practicum.shareit.util.Constants.SORT_BY_START_DESC;
+import static ru.practicum.shareit.util.Constants.*;
 
 @Service
 @RequiredArgsConstructor
@@ -27,9 +29,9 @@ import static ru.practicum.shareit.util.Constants.SORT_BY_START_DESC;
 @Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
 
-    private final BookingRepository repository;
-    private final UserRepository userRepository;
-    private final ItemRepository itemRepository;
+    private final BookingRepository bookingRepository;
+    private final UserRepository userRepository;//TODO:
+    private final ItemRepository itemRepository;//TODO:
 
     @Override
     @Transactional
@@ -37,7 +39,7 @@ public class BookingServiceImpl implements BookingService {
         log.info("Create booking by booker id {}", userId);
 
         User booker = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User is not found"));
 
 
         Item item = itemRepository.findById(bookingDto.getItemId())
@@ -63,7 +65,7 @@ public class BookingServiceImpl implements BookingService {
         bookingDto.setBookerId(userId);
         bookingDto.setStatus(BookingStatus.WAITING);
 
-        Booking booking = repository.save(BookingMapper.mapToBooking(bookingDto, item, booker));
+        Booking booking = bookingRepository.save(BookingMapper.mapToBooking(bookingDto, item, booker));
 
         return BookingOutMapper.mapToBookingOutDto(booking);
     }
@@ -76,11 +78,11 @@ public class BookingServiceImpl implements BookingService {
         User booker = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        Booking booking = repository.findById(bookingId)
+        Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
 
         if (!userId.equals(booking.getItem().getOwner().getId())) {
-            throw new NotOwnerException("User is not owner");
+            throw new NotOwnerException("User is not item owner");
         }
 
         BookingStatus bookingStatus = approved ? BookingStatus.APPROVED : BookingStatus.REJECTED;
@@ -91,7 +93,7 @@ public class BookingServiceImpl implements BookingService {
 
         booking.setStatus(bookingStatus);
 
-        Booking bookingSaved = repository.save(booking);
+        Booking bookingSaved = bookingRepository.save(booking);
         return BookingOutMapper.mapToBookingOutDto(bookingSaved);
     }
 
@@ -101,9 +103,9 @@ public class BookingServiceImpl implements BookingService {
         log.info("Search booking by booking id {}", bookingId);
 
         User booker = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User is not found"));
 
-        Booking booking = repository.findById(bookingId)
+        Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
 
         if (!userId.equals(booking.getBooker().getId()) && !userId.equals(booking.getItem().getOwner().getId())) {
@@ -115,17 +117,24 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BookingOutDto> getUserBookings(Integer userId, String state) {
+    public List<BookingOutDto> getUserBookings(Integer userId, String state, Integer from, Integer size) {
         log.info("Search all bookings by user id {} by matched state '{}'", userId, state);
         BooleanExpression byBooker = QBooking.booking.booker.id.eq(userId);
-        return getBookingOutDtos(userId, state, byBooker, SORT_BY_START_DESC);
+        List<BookingOutDto> bookingOutDtos = new ArrayList<>();
+        Pageable page = getPage(from, size, SORT_BY_START_DESC);
+        bookingOutDtos = getBookingOutDtos(userId, state, byBooker, page);
+        return bookingOutDtos;
     }
 
+
     @Override
-    public List<BookingOutDto> getUserItemsBookings(Integer userId, String state) {
+    public List<BookingOutDto> getItemsBookings(Integer userId, String state, Integer from, Integer size) {
         log.info("Search all bookings by owner user id {}", userId);
         BooleanExpression byItem = QBooking.booking.item.owner.id.eq(userId);
-        return getBookingOutDtos(userId, state, byItem, SORT_BY_START_DESC);
+        Pageable page = getPage(from, size, SORT_BY_START_DESC);
+        List<BookingOutDto> bookingOutDtos = new ArrayList<>();
+        bookingOutDtos = getBookingOutDtos(userId, state, byItem, page);
+        return bookingOutDtos;
     }
 
     @Override
@@ -141,7 +150,31 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public void deleteBooking(Integer userId, Integer bookingId) {
         log.info("Delete booking by user id {} by booking id {}", userId, bookingId);
-        repository.deleteByBookerIdAndId(userId, bookingId);
+        bookingRepository.deleteByBookerIdAndId(userId, bookingId);
+    }
+
+    private Pageable getPage(Integer from, Integer size, Sort sort) {
+        Pageable page = PageRequest.of(0, PAGE_SIZE, sort);
+        if (from != null && size != null) {
+
+            if (from < 0 || size <= 0) {
+                throw new IllegalStateException("Not correct page parameters");
+            }
+            page = PageRequest.of(from > 0 ? from / size : 0, size, sort);
+        }
+        return page;
+    }
+
+    private List<BookingOutDto> getBookingOutDtos(Integer userId, String state, BooleanExpression expression, Pageable page) {
+        User booker = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
+
+        BookingState bookingState = validateBookingState(state);
+
+        Iterable<Booking> bookings = getBookings(bookingState, expression, page);
+
+        List<BookingOutDto> bookingOutDtos = BookingOutMapper.mapToBookingOutDto(bookings);
+
+        return bookingOutDtos;
     }
 
 
@@ -172,11 +205,30 @@ public class BookingServiceImpl implements BookingService {
     }
 
 
+    private Iterable<Booking> getBookings(BookingState bookingState, BooleanExpression expression, Pageable page) {
+        BooleanExpression byState = null;
+
+        byState = getBooleanExpression(bookingState);
+
+        Iterable<Booking> booking = bookingRepository.findAll(expression.and(byState), page);
+        return booking;
+    }
+
     private Iterable<Booking> getBookings(BookingState bookingState, BooleanExpression expression, Sort sort) {
+        BooleanExpression byState = null;
+
+        byState = getBooleanExpression(bookingState);
+
+        Iterable<Booking> booking = bookingRepository.findAll(expression.and(byState), sort);
+        return booking;
+    }
+
+    private static BooleanExpression getBooleanExpression(BookingState bookingState) {
+        BooleanExpression byState = null;
+
         BooleanExpression byStart = null;
         BooleanExpression byEnd = null;
         BooleanExpression byStatus = null;
-        BooleanExpression byState = null;
 
         switch (bookingState) {
             case CURRENT:
@@ -210,16 +262,7 @@ public class BookingServiceImpl implements BookingService {
                 log.info("ALL");
                 break;
         }
-
-        Iterable<Booking> bookingLog = repository.findAll(expression, sort);
-
-        log.info("getBookings:");
-        for (Booking b : bookingLog) {
-            log.info("bookingLog:" + b.toString());
-        }
-
-        Iterable<Booking> booking = repository.findAll(expression.and(byState), sort);
-        return booking;
+        return byState;
     }
 
 
