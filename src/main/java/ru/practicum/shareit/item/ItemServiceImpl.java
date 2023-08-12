@@ -102,7 +102,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional
     public ItemDto getItem(Integer userId, Integer itemId) {
         log.info("Search item by item id {}", itemId);
         User user = userRepository.findById(userId)

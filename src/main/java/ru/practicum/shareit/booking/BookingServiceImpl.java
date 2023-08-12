@@ -21,8 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static ru.practicum.shareit.util.Constants.SORT_BY_ID_DESC;
-import static ru.practicum.shareit.util.Constants.SORT_BY_START_DESC;
+import static ru.practicum.shareit.util.Constants.*;
 
 @Service
 @RequiredArgsConstructor
@@ -121,15 +120,9 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingOutDto> getUserBookings(Integer userId, String state, Integer from, Integer size) {
         log.info("Search all bookings by user id {} by matched state '{}'", userId, state);
         BooleanExpression byBooker = QBooking.booking.booker.id.eq(userId);
-
         List<BookingOutDto> bookingOutDtos = new ArrayList<>();
         Pageable page = getPage(from, size, SORT_BY_START_DESC);
-        if (page != null) {
-            bookingOutDtos = getBookingOutDtos(userId, state, byBooker, page);
-        } else {
-            bookingOutDtos = getBookingOutDtos(userId, state, byBooker, SORT_BY_START_DESC);
-
-        }
+        bookingOutDtos = getBookingOutDtos(userId, state, byBooker, page);
         return bookingOutDtos;
     }
 
@@ -140,12 +133,7 @@ public class BookingServiceImpl implements BookingService {
         BooleanExpression byItem = QBooking.booking.item.owner.id.eq(userId);
         Pageable page = getPage(from, size, SORT_BY_START_DESC);
         List<BookingOutDto> bookingOutDtos = new ArrayList<>();
-        if (page != null) {
-            bookingOutDtos = getBookingOutDtos(userId, state, byItem, page);
-        } else {
-            bookingOutDtos = getBookingOutDtos(userId, state, byItem, SORT_BY_START_DESC);
-
-        }
+        bookingOutDtos = getBookingOutDtos(userId, state, byItem, page);
         return bookingOutDtos;
     }
 
@@ -165,9 +153,8 @@ public class BookingServiceImpl implements BookingService {
         bookingRepository.deleteByBookerIdAndId(userId, bookingId);
     }
 
-    private static Pageable getPage(Integer from, Integer size, Sort sort) {
-//        Sort sort = SORT_BY_START_DESC;
-        Pageable page = null;
+    private Pageable getPage(Integer from, Integer size, Sort sort) {
+        Pageable page = PageRequest.of(0, PAGE_SIZE, sort);
         if (from != null && size != null) {
 
             if (from < 0 || size <= 0) {

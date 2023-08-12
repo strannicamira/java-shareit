@@ -9,9 +9,8 @@ public class Constants {
     public static final Sort SORT_BY_ID_ASC = Sort.by(Sort.Direction.ASC, "id");
     public static final Sort SORT_BY_ID_DESC = Sort.by(Sort.Direction.DESC, "id");//from new to old,newer first? for ex. 6, 5, 4
     public static final Sort SORT_BY_START_DESC = Sort.by(Sort.Direction.DESC, "start");
-
     public static final Sort SORT_BY_REQUEST_CREATED_DESC = Sort.by(Sort.Direction.DESC, "created");
-
+    public static final Integer PAGE_SIZE = 10;
     public static final Integer MAGIC_NUMBER = 999;
 
 }

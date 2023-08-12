@@ -31,8 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static ru.practicum.shareit.util.Constants.MAGIC_NUMBER;
-import static ru.practicum.shareit.util.Constants.SORT_BY_START_DESC;
+import static ru.practicum.shareit.util.Constants.*;
 
 @Slf4j
 @Transactional
@@ -1017,8 +1016,7 @@ public class BookingServiceImplIntegrationTest {
 
 
     private static Pageable getPage(Integer from, Integer size, Sort sort) {
-//        Sort sort = SORT_BY_START_DESC;
-        Pageable page = null;
+        Pageable page = PageRequest.of(0, PAGE_SIZE, sort);
         if (from != null && size != null) {
 
             if (from < 0 || size <= 0) {
