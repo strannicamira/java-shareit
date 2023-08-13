@@ -32,7 +32,7 @@ public class UserClient extends BaseClient {
         return patch("/" + id, userDto);
     }
 
-    public ResponseEntity<Object> getUser(Integer id) {
+    public ResponseEntity<Object> getAllUsersById(Integer id) {
         return get("/" + id);
     }
 
@@ -40,7 +40,7 @@ public class UserClient extends BaseClient {
         return get("");
     }
 
-    public void deleteUser(Integer id) {
+    public void deleteUserById(Integer id) {
         delete("/" + id);
     }
 }

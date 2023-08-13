@@ -25,8 +25,8 @@ public class UserController {
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<Object> findById(@PathVariable("id") Integer id) {
-        return userClient.getUser(id);
+    public ResponseEntity<Object> getAllUsersById(@PathVariable("id") Integer id) {
+        return userClient.getAllUsersById(id);
     }
 
     @GetMapping
@@ -36,6 +36,6 @@ public class UserController {
 
     @DeleteMapping(value = "/{userId}")
     public void deleteUserById(@PathVariable(name = "userId") Integer id) {
-        userClient.deleteUser(id);
+        userClient.deleteUserById(id);
     }
 }
