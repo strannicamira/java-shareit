@@ -66,9 +66,9 @@ public class BookingController {
      */
     @GetMapping()
     public List<BookingOutDto> getUserBooking(@RequestHeader("X-Sharer-User-Id") Integer userId,
-                                          @RequestParam(name = "state", required = false, defaultValue = "ALL") String state,
-                                          @RequestParam(name = "from", required = false) Integer from,
-                                          @RequestParam(name = "size", required = false) Integer size) {
+                                              @RequestParam(name = "state", required = false, defaultValue = "ALL") String state,
+                                              @RequestParam(name = "from", required = false) Integer from,
+                                              @RequestParam(name = "size", required = false) Integer size) {
         return bookingService.getUserBookings(userId, state, from, size);
     }
 
@@ -80,9 +80,9 @@ public class BookingController {
      */
     @GetMapping(value = "/owner")
     public List<BookingOutDto> getItemsBookings(@RequestHeader("X-Sharer-User-Id") Integer userId,
-                                                    @RequestParam(name = "state", required = false, defaultValue = "ALL") String state,
-                                                    @RequestParam(name = "from", required = false) Integer from,
-                                                    @RequestParam(name = "size", required = false) Integer size) {
+                                                @RequestParam(name = "state", required = false, defaultValue = "ALL") String state,
+                                                @RequestParam(name = "from", required = false) Integer from,
+                                                @RequestParam(name = "size", required = false) Integer size) {
         return bookingService.getItemsBookings(userId, state, from, size);
     }
 
