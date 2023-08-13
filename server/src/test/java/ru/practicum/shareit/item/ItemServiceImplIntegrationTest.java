@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static ru.practicum.shareit.util.Constants.MAGIC_NUMBER;
+import static ru.practicum.shareit.util.Constants.SORT_BY_ID_DESC;
 
 @Slf4j
 @Transactional
@@ -168,7 +169,7 @@ public class ItemServiceImplIntegrationTest {
 
         List<ItemWithBookingDto> itemWithBookingDtos = itemService.getUserItemsWithBooking(itemOwnerId);
 
-        List<Item> items = itemRepository.findAllByOwnerId(itemOwnerId);
+        List<Item> items = itemRepository.findAllByOwnerId(itemOwnerId, SORT_BY_ID_DESC);
 
         assertThat(items.size(), equalTo(itemWithBookingDtos.size()));
         //TODO:

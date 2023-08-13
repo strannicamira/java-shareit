@@ -6,15 +6,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.*;
-import ru.practicum.shareit.comment.*;
+import ru.practicum.shareit.comment.Comment;
+import ru.practicum.shareit.comment.CommentItemDto;
+import ru.practicum.shareit.comment.CommentMapper;
+import ru.practicum.shareit.comment.CommentRepository;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.request.*;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import static ru.practicum.shareit.util.Constants.SORT_BY_ID_ASC;
 
 @Service
 @RequiredArgsConstructor
@@ -147,7 +153,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemDto> getUserItems(Integer userId) {
         log.info("Search all items by user id {}", userId);
-        List<Item> items = itemRepository.findAllByOwnerId(userId);
+        List<Item> items = itemRepository.findAllByOwnerId(userId, SORT_BY_ID_ASC);
 
         return ItemMapper.mapToItemDto(items);
     }
@@ -155,7 +161,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemWithBookingDto> getUserItemsWithBooking(Integer userId) {
         log.info("Search all items by user id {}", userId);
-        List<Item> items = itemRepository.findAllByOwnerId(userId);
+        List<Item> items = itemRepository.findAllByOwnerId(userId, SORT_BY_ID_ASC);
         List<ItemWithBookingDto> dtos = new ArrayList<>();
         for (Item item : items) {
             ItemWithBookingDto itemWithBookingDto = getItemWithBooking(userId, item.getId());

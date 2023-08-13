@@ -20,6 +20,4 @@ public class ItemRequestDto {
     @DateTimeFormat(pattern = TIME_PATTERN)
     private LocalDateTime created;
     private List<ItemDto> items;
-
-
 }
