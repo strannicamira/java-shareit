@@ -35,6 +35,10 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto createUser(UserDto userDto) {
         log.info("Create user");
+//        List<User> usersByEmail = userRepository.findAllByEmail(userDto.getEmail());
+//        if (!usersByEmail.isEmpty()) {
+//            throw new DuplicateEmailFoundException("User with such email already exists: " + userDto.getEmail());
+//        }
         User user = userRepository.save(UserMapper.mapToUser(userDto));
         return UserMapper.mapToUserDto(user);
     }
@@ -46,6 +50,11 @@ public class UserServiceImpl implements UserService {
 
         //TODO: extract method
         User userById = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found user by id to update: " + userId));
+
+//        List<User> usersByEmail = userRepository.findAllByEmail(userDto.getEmail());
+//        if (!usersByEmail.isEmpty()) {
+//            throw new DuplicateEmailFoundException("User with such email already exists: " + userDto.getEmail());
+//        }
 
         //TODO: extract method
         userById.setName(userDto.getName() == null || userDto.getName().isBlank() ? userById.getName() : userDto.getName());

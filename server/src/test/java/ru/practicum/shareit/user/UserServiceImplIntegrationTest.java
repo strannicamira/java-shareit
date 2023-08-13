@@ -2,12 +2,10 @@ package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
 
@@ -34,13 +32,9 @@ public class UserServiceImplIntegrationTest {
     private final UserService userService;
     private final UserRepository repository;
 
-    private static int index = 0;
-
-    @Order(1)
+    @Order(10)
     @Test
     void createUser() {
-        log.info("UserServiceImplIntegrationTest-" + index++ + "-createUser");
-
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
 
         UserDto createdUserDto = userService.createUser(userDto);
@@ -53,11 +47,21 @@ public class UserServiceImplIntegrationTest {
         assertThat(user.getEmail(), equalTo(userDto.getEmail()));
     }
 
-    @Order(2)
+    @Order(11)
+    @Test
+    void createUser_whenUserWithSuchEmailExists_thenThrowDataIntegrityViolationException() {
+        UserDto userDto = makeUserDto("John Doe", "thesame@email.com");
+
+        UserDto createdUserDto = userService.createUser(userDto);
+
+        assertThrows(DataIntegrityViolationException.class, () -> userService.createUser(userDto));
+
+    }
+
+
+    @Order(20)
     @Test
     void updateUser() {
-        log.info("UserServiceImplIntegrationTest-" + index++ + "-updateUser");
-
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
         UserDto savedUserDto = userService.createUser(userDto);
 
@@ -74,11 +78,9 @@ public class UserServiceImplIntegrationTest {
     }
 
 
-    @Order(3)
+    @Order(21)
     @Test
     void updateUserName() {
-        log.info("UserServiceImplIntegrationTest-" + index++ + "-updateUserName");
-
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
         UserDto savedUserDto = userService.createUser(userDto);
 
@@ -94,11 +96,9 @@ public class UserServiceImplIntegrationTest {
         assertThat(savedUser.getEmail(), equalTo(userDto.getEmail()));
     }
 
-    @Order(4)
+    @Order(22)
     @Test
     void updateUserEmail() {
-        log.info("UserServiceImplIntegrationTest-" + index++ + "-updateUserName");
-
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
         UserDto savedUserDto = userService.createUser(userDto);
         Integer userId = savedUserDto.getId();
@@ -114,58 +114,51 @@ public class UserServiceImplIntegrationTest {
         assertThat(savedUser.getEmail(), equalTo(userDtoToUpdate.getEmail()));
     }
 
-    @Order(5)
+    @Order(23)
     @Test
     void updateUser_whenIdDoesntExist_thenThrowNotFoundException() {
-        log.info("UserServiceImplIntegrationTest-" + index++ + "-updateUser_");
-
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
         UserDto savedUserDto = userService.createUser(userDto);
 
         Integer userId = MAGIC_NUMBER;
         UserDto userDtoToUpdate = makeUserDto("Up Date", "update@email.com");
-//        User savedMockedUser = new User(1, "Up Date", "update@email.com");
 
         UserDto userDtoToSave = makeUserDto("John Doe", "some@email.com");
 
         assertThrows(NotFoundException.class, () -> userService.updateUser(userId, userDtoToUpdate));
     }
 
-    @Order(6)
+    @Order(24)
+    @Disabled//TODO:
     @Test
-    void getUser() {
-        log.info("UserServiceImplIntegrationTest-" + index++ + "-getUser");
+    void updateUserEmail_whenUserWtihSuchEmailExists_thenThrowDataIntegrityViolationException() {
+        log.info("updateUserEmail_whenUserWtihSuchEmailExists_thenThrowDataIntegrityViolationException: ");
 
-        UserDto userDto = makeUserDto("John Doe", "some@email.com");
+        UserDto userDto = makeUserDto("John Doe", "create@email.com");
+        UserDto savedUserDto = userService.createUser(userDto);
+        log.info("Create result 1: " + savedUserDto);
+        Integer userId = savedUserDto.getId();
 
-        UserDto createdUserDto = userService.createUser(userDto);
-        Integer createdUserId = createdUserDto.getId();
+        UserDto userDto2 = makeUserDto("Jane Doe", "update@email.com");
+        UserDto savedUserDto2 = userService.createUser(userDto2);
+        log.info("Create result 2: " + savedUserDto);
+        Integer userId2 = savedUserDto.getId();
 
-        UserDto gotdUserDto = userService.getUser(createdUserId);
+        UserDto userDtoToUpdate = makeUserDtoByEmail("create@email.com");
 
-        assertThat(createdUserId, equalTo(gotdUserDto.getId()));
-        assertThat(userDto.getName(), equalTo(gotdUserDto.getName()));
-        assertThat(userDto.getEmail(), equalTo(gotdUserDto.getEmail()));
+//        UserDto userDto1 = userService.updateUser(userId, userDtoToUpdate);
 
+
+        assertThrows(DataIntegrityViolationException.class, () -> {
+            UserDto userDto3 = userService.updateUser(userId2, userDtoToUpdate);
+            log.info("Update result: " + userDto3);
+
+        });
     }
 
-    @Order(7)
-    @Test
-    void getUser_whenIdDoesntExist_thenThrowNotFoundException() {
-        log.info("UserServiceImplIntegrationTest-" + index++ + "-getUser_");
-
-        int userId = 999;
-
-        assertThrows(NotFoundException.class, () -> userService.getUser(userId));
-
-
-    }
-
-
-    @Order(8)
+    @Order(30)
     @Test
     void getAllUsers() {
-        log.info("UserServiceImplIntegrationTest-" + index++ + "-getUser");
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
         UserDto createdUserDto = userService.createUser(userDto);
         Integer createdUserId = createdUserDto.getId();
@@ -179,16 +172,34 @@ public class UserServiceImplIntegrationTest {
             assertThat(gotdUserDtos.get(i).getName(), equalTo(userDtos.get(i).getName()));
             assertThat(gotdUserDtos.get(i).getEmail(), equalTo(userDtos.get(i).getEmail()));
         }
-
-
     }
 
+    @Order(40)
+    @Test
+    void getUser() {
+        UserDto userDto = makeUserDto("John Doe", "some@email.com");
 
-    @Order(9)
+        UserDto createdUserDto = userService.createUser(userDto);
+        Integer createdUserId = createdUserDto.getId();
+
+        UserDto gotdUserDto = userService.getUser(createdUserId);
+
+        assertThat(createdUserId, equalTo(gotdUserDto.getId()));
+        assertThat(userDto.getName(), equalTo(gotdUserDto.getName()));
+        assertThat(userDto.getEmail(), equalTo(gotdUserDto.getEmail()));
+    }
+
+    @Order(41)
+    @Test
+    void getUser_whenIdDoesntExist_thenThrowNotFoundException() {
+        int userId = 999;
+
+        assertThrows(NotFoundException.class, () -> userService.getUser(userId));
+    }
+
+    @Order(50)
     @Test
     void deleteUser() {
-        log.info("UserServiceImplIntegrationTest-" + index++ + "-deleteUser");
-
         UserDto userDto = makeUserDto("John Doe", "some@email.com");
 
         UserDto createdUserDto = userService.createUser(userDto);
