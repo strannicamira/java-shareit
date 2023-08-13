@@ -13,20 +13,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BookingDto {
-//    private Integer id;
 
     private Integer itemId;
-    //    private Integer bookerId;
-//    private BookingStatus status;
-
     @NotNull
     @FutureOrPresent
-//    @DateTimeFormat(pattern = TIME_PATTERN)
     private LocalDateTime start;
-
     @NotNull
     @FutureOrPresent
-//    @DateTimeFormat(pattern = TIME_PATTERN)
     private LocalDateTime end;
 
 }

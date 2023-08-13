@@ -10,9 +10,6 @@ import javax.validation.constraints.NotEmpty;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ItemRequestDto {
-
-//    private Integer id;
     @NotEmpty
     private String description;
-
 }

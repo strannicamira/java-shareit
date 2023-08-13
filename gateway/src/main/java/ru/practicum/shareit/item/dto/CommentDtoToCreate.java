@@ -2,6 +2,8 @@ package ru.practicum.shareit.item.dto;
 
 import lombok.*;
 
+import javax.validation.constraints.NotEmpty;
+
 
 @Getter
 @Setter
@@ -10,6 +12,6 @@ import lombok.*;
 @NoArgsConstructor
 
 public class CommentDtoToCreate {
-//    @NotEmpty
+    @NotEmpty
     private String text;
 }
