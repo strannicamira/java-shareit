@@ -27,7 +27,7 @@ public class ItemRequestClient extends BaseClient {
     }
 
     public ResponseEntity<Object> create(Integer userId, ItemRequestDto itemRequest) {
-        return patch("", userId, itemRequest);
+        return post("", userId, itemRequest);
     }
 
     public ResponseEntity<Object> get(Integer userId) {
@@ -44,6 +44,6 @@ public class ItemRequestClient extends BaseClient {
                 "from", from,
                 "size", size
         );
-        return get("", Long.valueOf(userId), parameters);
+        return get("/all?from={from}&size={size}", Long.valueOf(userId), parameters);
     }
 }

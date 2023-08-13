@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,6 +42,17 @@ public class ItemRequestController {
     }
 
     /*
+    GET /requests/{requestId} — получить данные об одном конкретном запросе вместе с данными
+     об ответах на него в том же формате, что и в эндпоинте GET /requests.
+    Посмотреть данные об отдельном запросе может любой пользователь.
+     */
+    @GetMapping(value = "/{requestId}")
+    public ResponseEntity<Object> get(@RequestHeader("X-Sharer-User-Id") Integer userId,
+                                      @PathVariable Integer requestId) {
+        return itemRequestClient.get(userId, requestId);
+    }
+
+    /*
     GET /requests/all?from={from}&size={size} —
     получить список запросов, созданных другими пользователями.
     С помощью этого эндпоинта пользователи смогут просматривать существующие запросы,
@@ -47,18 +60,6 @@ public class ItemRequestController {
     от более новых к более старым. Результаты должны возвращаться постранично.
     Для этого нужно передать два параметра:
     from — индекс первого элемента, начиная с 0, и size — количество элементов для отображения.
-     */
-    @GetMapping(value = "/{requestId}")
-    public ResponseEntity<Object> get(@RequestHeader("X-Sharer-User-Id") Integer userId,
-                              @PathVariable Integer requestId) {
-        return itemRequestClient.get(userId, requestId);
-    }
-
-    /*
-    GET /requests/{requestId} — получить данные об одном конкретном запросе вместе с данными
-     об ответах на него в том же формате, что и в эндпоинте GET /requests.
-    Посмотреть данные об отдельном запросе может любой пользователь.
-
 
     Теперь вернёмся к улучшению, о котором мы упомянули ранее.
     Вы уже используете в запросе GET /requests/all пагинацию,
@@ -66,8 +67,8 @@ public class ItemRequestController {
      */
     @GetMapping(value = "/all")
     public ResponseEntity<Object> get(@RequestHeader("X-Sharer-User-Id") Integer userId,
-                                    @RequestParam(name = "from", required = false) Integer from,
-                                    @RequestParam(name = "size", required = false) Integer size) {
+                                      @PositiveOrZero @RequestParam(name = "from", defaultValue = "0", required = false) Integer from,
+                                      @Positive @RequestParam(name = "size", defaultValue = "10", required = false) Integer size) {
         return itemRequestClient.get(userId, from, size);
     }
 

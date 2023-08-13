@@ -8,7 +8,6 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.dto.BookingState;
 import ru.practicum.shareit.booking.dto.BookingStateTmpl;
 import ru.practicum.shareit.client.BaseClient;
 
@@ -53,18 +52,18 @@ public class BookingClient extends BaseClient {
         return get("/" + bookingId, userId);
     }
 
-    public ResponseEntity<Object> getUserBookings(Integer userId, BookingState state, Integer from, Integer size) {
+    public ResponseEntity<Object> getUserBookings(Integer userId, String state, Integer from, Integer size) {
         Map<String, Object> parameters = Map.of(
-                "state", state.getName(),
+                "state", state,
                 "from", from,
                 "size", size
         );
         return get("?state={state}&from={from}&size={size}", Long.valueOf(userId), parameters);
     }
 
-    public ResponseEntity<Object> getItemsBookings(Integer userId, BookingState state, Integer from, Integer size) {
+    public ResponseEntity<Object> getItemsBookings(Integer userId, String state, Integer from, Integer size) {
         Map<String, Object> parameters = Map.of(
-                "state", state.getName(),
+                "state", state,
                 "from", from,
                 "size", size
         );

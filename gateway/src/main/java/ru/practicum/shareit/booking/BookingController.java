@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.dto.BookingState;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -78,9 +77,9 @@ public class BookingController {
                                                  @RequestParam(name = "state", required = false, defaultValue = "ALL") String stringState,
                                                  @PositiveOrZero @RequestParam(name = "from", defaultValue = "0", required = false) Integer from,
                                                  @Positive @RequestParam(name = "size", defaultValue = "10", required = false) Integer size) {
-        BookingState state = BookingState.from(stringState)
-                .orElseThrow(() -> new IllegalStateException("Unknown state: UNSUPPORTED_STATUS"));
-        return bookingClient.getUserBookings(userId, state, from, size);
+//        BookingState state = BookingState.from(stringState)
+//                .orElseThrow(() -> new IllegalStateException("Unknown state: UNSUPPORTED_STATUS"));
+        return bookingClient.getUserBookings(userId, stringState, from, size);
     }
 
     /*
@@ -89,14 +88,15 @@ public class BookingController {
     Эндпоинт — GET /bookings/owner?state={state}. Этот запрос имеет смысл для владельца хотя бы одной вещи.
     Работа параметра state аналогична его работе в предыдущем сценарии.
      */
+    //TODO:
     @GetMapping(value = "/owner")
     public ResponseEntity<Object> getItemsBookings(@RequestHeader("X-Sharer-User-Id") Integer userId,
                                                    @RequestParam(name = "state", required = false, defaultValue = "ALL") String stringState,
                                                    @PositiveOrZero @RequestParam(name = "from", defaultValue = "0", required = false) Integer from,
                                                    @Positive @RequestParam(name = "size", defaultValue = "10", required = false) Integer size) {
-        BookingState state = BookingState.from(stringState)
-                .orElseThrow(() -> new IllegalStateException("Unknown state: UNSUPPORTED_STATUS"));
-        return bookingClient.getItemsBookings(userId, state, from, size);
+//        BookingState state = BookingState.from(stringState)
+//                .orElseThrow(() -> new IllegalStateException("Unknown state: UNSUPPORTED_STATUS"));
+        return bookingClient.getItemsBookings(userId, stringState, from, size);
     }
 
     @DeleteMapping("/{bookingId}")
