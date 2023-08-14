@@ -11,7 +11,7 @@ import javax.validation.Valid;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/items")
+@RequestMapping("${itemApiPrefix}")
 public class ItemController {
 
     private final ItemClient itemClient;

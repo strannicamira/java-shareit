@@ -11,7 +11,7 @@ import javax.validation.constraints.PositiveOrZero;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(path = "/requests")
+@RequestMapping(path = "${itemRequestApiPrefix}")
 public class ItemRequestController {
 
     private final ItemRequestClient itemRequestClient;

@@ -10,7 +10,7 @@ import javax.validation.Valid;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(path = "/users")
+@RequestMapping(path = "${userApiPrefix}")
 public class UserController {
 
     private final UserClient userClient;
