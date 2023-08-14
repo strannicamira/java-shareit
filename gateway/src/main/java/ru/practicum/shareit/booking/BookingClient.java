@@ -10,7 +10,7 @@ import java.util.Map;
 //@Service
 public class BookingClient extends BaseClient {
 
-    public BookingClient(RestTemplate restTemplate){
+    public BookingClient(RestTemplate restTemplate) {
         super(restTemplate);
     }
 

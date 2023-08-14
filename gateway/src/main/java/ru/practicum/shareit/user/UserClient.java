@@ -10,7 +10,7 @@ import javax.validation.Valid;
 
 //@Service
 public class UserClient extends BaseClient {
-    public UserClient(RestTemplate restTemplate){
+    public UserClient(RestTemplate restTemplate) {
         super(restTemplate);
     }
 

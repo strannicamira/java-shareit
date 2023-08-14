@@ -79,7 +79,7 @@ public class ItemController {
      */
     @GetMapping(value = "/search")
     public ResponseEntity<Object> getAllItemsByAnyUserByText(@RequestHeader("X-Sharer-User-Id") Integer userId,
-                                                    @RequestParam(name = "text", required = false) String text) {
+                                                             @RequestParam(name = "text", required = false) String text) {
         return itemClient.getAllItemsByAnyUserByText(userId, text);
     }
 
@@ -91,8 +91,8 @@ public class ItemController {
 
     @PostMapping("/{itemId}/comment")
     public ResponseEntity<Object> createItemComment(@RequestHeader("X-Sharer-User-Id") Integer userId,
-                                            @PathVariable(name = "itemId") Integer itemId,
-                                            @Valid @RequestBody CommentDtoToCreate commentDto) {
+                                                    @PathVariable(name = "itemId") Integer itemId,
+                                                    @Valid @RequestBody CommentDtoToCreate commentDto) {
         return itemClient.createItemComment(userId, itemId, commentDto);
     }
 }

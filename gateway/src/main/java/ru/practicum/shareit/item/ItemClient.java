@@ -12,7 +12,7 @@ import java.util.Map;
 //@Service
 public class ItemClient extends BaseClient {
 
-    public ItemClient(RestTemplate restTemplate){
+    public ItemClient(RestTemplate restTemplate) {
         super(restTemplate);
     }
 
