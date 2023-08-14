@@ -5,8 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.validation.constraints.FutureOrPresent;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 import static ru.practicum.shareit.util.Constants.TIME_PATTERN;
@@ -17,13 +15,13 @@ import static ru.practicum.shareit.util.Constants.TIME_PATTERN;
 public class BookingDto {
     private Integer id;
 
-    @NotNull
-    @FutureOrPresent
+//    @NotNull
+//    @FutureOrPresent
     @DateTimeFormat(pattern = TIME_PATTERN)
     private LocalDateTime start;
 
-    @NotNull
-    @FutureOrPresent
+//    @NotNull
+//    @FutureOrPresent
     @DateTimeFormat(pattern = TIME_PATTERN)
     private LocalDateTime end;
 
