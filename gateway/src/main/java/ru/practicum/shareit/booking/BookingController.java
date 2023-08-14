@@ -14,7 +14,7 @@ import javax.validation.constraints.PositiveOrZero;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(path = "/bookings")
+@RequestMapping(path = "${bookingApiPrefix}")
 @Slf4j
 @Validated
 public class BookingController {
